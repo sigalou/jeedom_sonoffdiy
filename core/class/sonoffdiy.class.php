@@ -1,202 +1,8 @@
 <?php
 require_once dirname(__FILE__) . '/../../../../core/php/core.inc.php';
 class sonoffdiy extends eqLogic {
-	public static function cron($_eqlogic_id = null) {
-		$eqLogics = ($_eqlogic_id !== null) ? array(eqLogic::byId($_eqlogic_id)) : eqLogic::byType('sonoffdiy', true);
-		foreach ($eqLogics as $sonoffdiy) {
-			$autorefresh = $sonoffdiy->getConfiguration('autorefresh','00 22 01 01 3 2020');
-			if ($autorefresh != '') {
-				try {
-					//log::add('sonoffdiy', 'debug', __('Expression cron valide pour ', __FILE__) . $sonoffdiy->getHumanName() . ' : ' . $autorefresh);
-					$c = new Cron\CronExpression($autorefresh, new Cron\FieldFactory);
-					if ($c->isDue()) {
-						$sonoffdiy->refresh();
-					}
-				} catch (Exception $exc) {
-					log::add('sonoffdiy', 'error', __('Expression cron non valide pour ', __FILE__) . $sonoffdiy->getHumanName() . ' : ' . $autorefresh);
-				}
-			}
-		}
-	}	
-	public static function enregistreAlbumFB($Id, $Albums) {
-		$Albums=json_decode($Albums);
-		$device = eqLogic::byId($Id);
-		if (is_object($device)) {
-			// Enregistrement dans Configuration du device en cours ($this)
-			$device->setConfiguration('arrayAlbumsFacebook', $Albums);
-			log::add('sonoffdiy', 'debug', 'On enregistre : '.json_encode($Albums).' dans plugin/device('.$Id.')/config/arrayAlbumsFacebook');
-			$device->save();
-		} else
-			event::add('jeedom::alert', array('level' => 'warning', 'page' => 'sonoffdiy', 'message' => __('Device id:'.$Id.' introuvable', __FILE__)));
-	}
-	public static function scanLienPhotos($Id) {
-		$device = eqLogic::byId($Id);
-		if (is_object($device)) {
-			$diapo = array();
-			$device->setConfiguration('localEtat', "nok"); 
-			$sambaShare	= config::byKey('samba::backup::share')	;
-			log::add('sonoffdiy', 'debug', 'sambaShare->>>'.$sambaShare);
-			log::add('sonoffdiy', 'debug', 'dossierSambasonoffdiy->>>'.$device->getConfiguration('dossierSambasonoffdiy'));
-			$dos=$sambaShare.$device->getConfiguration('dossierSambasonoffdiy');
-				try {
-					$nbPhotos=self::lsjpg_count($device->getConfiguration('dossierSambasonoffdiy'));
-					$device->setConfiguration('cheminsonoffdiyMessage', "");
-				}
-				catch(Exception $exc) {
-					//log::add('sonoffdiy', 'error', __('Erreur pour ', __FILE__) . ' : ' . $exc->getMessage());
-					$device->setConfiguration('cheminsonoffdiyMessage', $exc->getMessage());
-					$nbPhotos=0;
-				}		
-			$device->setConfiguration('sambaEtat', "ok"); 
-			log::add('sonoffdiy', 'debug', "sambaEtat:ok");				
-			$device->setConfiguration('cheminsonoffdiyComplet', $dos);
-			$device->setConfiguration('nombrePhotos', $nbPhotos);
-			$device->setConfiguration('derniereMAJ', date("d-m-Y H:i:s"));
-				if ($nbPhotos==0) {
-					$device->setConfiguration('cheminsonoffdiyValide', "nok");
-					$device->setConfiguration('localEtat', "nok"); 
-					$device->setConfiguration('sambaEtat', "nok"); 
-				}
-				else {
-					$device->setConfiguration('cheminsonoffdiyValide', "ok");
-				}
-			$device->save();
-		} else
-		event::add('jeedom::alert', array('level' => 'warning', 'page' => 'sonoffdiy', 'message' => __('Device id:'.$Id.' introuvable', __FILE__)));
-	}
-	public function sortBy($field, &$array, $direction = 'asc') {
-		usort($array, create_function('$a, $b', '
-			$a = $a["' . $field . '"];
-			$b = $b["' . $field . '"];
-			if ($a == $b) return 0;
-			$direction = strtolower(trim($direction));
-			return ($a ' . ($direction == 'desc' ? '>' : '<') . ' $b) ? -1 : 1;
-			'));
-		return true;
-	}
-	public function redimensionne_Photo($tirageSort,$maxWidth,$maxHeight, $arrondiPhoto, $centrerLargeur)  {
-		$fichier='/tmp/sonoffdiy_'.$this->getId()."_".$tirageSort.'_rotate.jpg';
-		$fichiercomplet='/var/www/html'.$fichier;
-		if (!file_exists($fichiercomplet)) {	
-			$fichier='/tmp/sonoffdiy_'.$this->getId()."_".$tirageSort.'.jpg';
-			$fichiercomplet='/var/www/html'.$fichier;
-		}
-		if (file_exists($fichiercomplet)) {
-			# Passage des paramètres dans la table : imageinfo
-			$imageinfo= getimagesize("$fichiercomplet");
-			$iw=$imageinfo[0];
-			$ih=$imageinfo[1];
-			# Paramètres : Largeur et Hauteur souhaiter $maxWidth, $maxHeight
-			# Calcul des rapport de Largeur et de Hauteur
-			$widthscale = $iw/$maxWidth;
-			$heightscale = $ih/$maxHeight;
-			$rapport = $ih/$widthscale;
-			# Calul des rapports Largeur et Hauteur à afficher
-			if($rapport < $maxHeight)
-				{$nwidth = $maxWidth;}
-			 else
-				{$nwidth = round($iw/$heightscale);}
-			 if($rapport < $maxHeight)
-				{$nheight = $rapport;}
-			 else
-				{$nheight = $maxHeight;}
-			$decalerAdroite="";
-			if ($centrerLargeur) {
-				$decalage=round(($maxWidth-$nwidth)/2);
-				if ($decalage > 1)
-					$decalerAdroite="position: relative; left: ".$decalage."px;";
-			log::add('sonoffdiy', 'debug', '--> Image '.$iw.'x'.$ih.' redimensée en '.$nwidth.'x'.$nheight);
-			}
-			return '<img height="'.$nheight.'" width="'.$nwidth.'" class="rien" style="'.$decalerAdroite.'height: '.$nheight.';width: '.$nwidth.';border-radius: '.$arrondiPhoto.';" src="'.$fichier.'" alt="image">';
-		} else {
-			log::add('sonoffdiy', 'debug', '**********************file_exists PAS:'.$fichiercomplet.'***********************************');
-			return "Le fichier $fichiercomplet n'existe pas.";
-		}    
-	}
-	public function redimensionne_PhotoFacebook($source,$Width,$Height,$maxWidth,$maxHeight, $arrondiPhoto, $centrerLargeur)  {
-		$iw=$Width;
-		$ih=$Height;
-		# Paramètres : Largeur et Hauteur souhaiter $maxWidth, $maxHeight
-		# Calcul des rapport de Largeur et de Hauteur
-		$widthscale = $iw/$maxWidth;
-		$heightscale = $ih/$maxHeight;
-		$rapport = $ih/$widthscale;
-		# Calul des rapports Largeur et Hauteur à afficher
-		if($rapport < $maxHeight)
-			{$nwidth = $maxWidth;}
-		 else
-			{$nwidth = round($iw/$heightscale);}
-		 if($rapport < $maxHeight)
-			{$nheight = $rapport;}
-		 else
-			{$nheight = $maxHeight;}
-		$decalerAdroite="";
-		if ($centrerLargeur) {
-			$decalage=round(($maxWidth-$nwidth)/2);
-			if ($decalage > 1)
-				$decalerAdroite="position: relative; left: ".$decalage."px;";
-		log::add('sonoffdiy', 'debug', '--> Image '.$iw.'x'.$ih.' redimensée en '.$nwidth.'x'.$nheight);
-		}
-		return '<img height="'.$nheight.'" width="'.$nwidth.'" class="rien" style="'.$decalerAdroite.'height: '.$nheight.';width: '.$nwidth.';border-radius: '.$arrondiPhoto.';" src="'.$source.'" alt="image">';
-	}
-	public function infosExif($tirageSort, $_indexPhoto, $_device)  {
-		$fichier='/tmp/sonoffdiy_'.$this->getId()."_".$tirageSort.'.jpg';
-		$fichiercomplet='/var/www/html'.$fichier;
-		$fichiercompletRotate='/var/www/html/tmp/sonoffdiy_'.$this->getId()."_".$tirageSort.'_rotate.jpg';
-		if (file_exists($fichiercomplet)) {
-			$exif = exif_read_data($fichiercomplet, 'EXIF');
-			$intDate=0;
-			if     (strtotime($exif['FileDateTime'])) $intDate=strtotime($exif['FileDateTime']);
-			elseif (strtotime($exif['DateTimeOriginal'])) $intDate=strtotime($exif['DateTimeOriginal']);
-			elseif (strtotime($exif['DateTimeDigitized'])) $intDate=strtotime($exif['DateTimeDigitized']);
-			elseif (strtotime($exif['DateTimeDigitized'])) $intDate=strtotime($exif['DateTimeDigitized']);
-			elseif (strtotime($exif['GPSDateStamp'])) $intDate=strtotime($exif['GPSDateStamp']);
-			else $intDate=$exif['FileDateTime'];
-			$formatDateHeure = config::byKey('formatDateHeure', 'sonoffdiy', '0');
-			if ($formatDateHeure =="") $formatDateHeure="d-m-Y H:i:s";
-			$_device->checkAndUpdateCmd('date'.$_indexPhoto, date($formatDateHeure, $intDate));
-			log::add('sonoffdiy', 'debug', '--> Date&Heure récupérés: '.date($formatDateHeure, $intDate));
-			//log::add('sonoffdiy', 'debug', '--> Orientation récupérée: '.$exif['GPSLatitude']);
-			if (config::byKey('rotate', 'sonoffdiy', '0')) {
-				$photoaTraiter = ImageCreateFromJpeg($fichiercomplet);
-				switch ($exif['Orientation']) {
-					case "6":
-						imagejpeg(imagerotate($photoaTraiter, 270, 0),$fichiercompletRotate);
-						break;
-					case "8":
-						imagejpeg(imagerotate($photoaTraiter, 90, 0),$fichiercompletRotate);
-						break;
-					case "3":
-						imagejpeg(imagerotate($photoaTraiter, 180, 0),$fichiercompletRotate);
-						break;
-				}	
-			}
-			$siteGPS="";
-			$APIGoogleMaps = config::byKey('APIGoogleMaps', 'sonoffdiy', '0');
-			if ($APIGoogleMaps !="" && is_array($exif['GPSLatitude'])) {
-				$requete="https://maps.googleapis.com/maps/api/geocode/json?latlng=".self::DMSversDD($exif['GPSLatitudeRef'],$exif['GPSLatitude']).",".self::DMSversDD($exif['GPSLongitudeRef'],$exif['GPSLongitude'])."&key=".$APIGoogleMaps;
-				log::add('sonoffdiy', 'debug', '--> Requete Web: '."https://maps.googleapis.com/maps/api/geocode/json?latlng=".self::DMSversDD($exif['GPSLatitudeRef'],$exif['GPSLatitude']).",".self::DMSversDD($exif['GPSLongitudeRef'],$exif['GPSLongitude'])."&key=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
-				$recupereJson=file_get_contents($requete);
-				$json = json_decode($recupereJson,true);
-				if ($json['error_message'] != "")
-					$siteGPS=$json['error_message'];
-				else
-					$siteGPS=strstr($json['plus_code']['compound_code'], ' ');
-				log::add('sonoffdiy', 'debug', '--> Adresse trouvée: '.$siteGPS);
-			} else {
-			log::add('sonoffdiy', 'debug', "--> Pas de coodonnées GPS de détectées (ou pas de clé Google Maps configurée)"); }
-			$_device->checkAndUpdateCmd('site'.$_indexPhoto, $siteGPS); 
-		}
-	}
-	public function DMSversDD($WouS, $arrayGPS) {
-		if ($WouS=="W" || $WouS=="S") $negatif=-1; else $negatif=1;
-		$nombre=(floatval(str_replace("/1", "", self::recupGPS($arrayGPS[0]))))+((floatval(str_replace("/1", "", self::recupGPS($arrayGPS[2]))) /60 + floatval(str_replace("/1", "", self::recupGPS($arrayGPS[1]))))/60);
-		$nombre=$nombre*$negatif;
-		return $nombre;
-	}
-	public function recupGPS($chaineGPS) {
-		return intval(strstr($chaineGPS, '/', true))/intval(str_replace("/", "", strstr($chaineGPS, '/')));
-	}
+	
+	
 	public function refresh() {
 		$largeurPhoto=$this->getConfiguration('largeurPhoto');
 		$hauteurPhoto=$this->getConfiguration('hauteurPhoto');
@@ -328,98 +134,45 @@ class sonoffdiy extends eqLogic {
 			}
 		}
 	}
+	
+	
 	public function postSave() {
-	$nbPhotosaGenerer=$this->getConfiguration('nbPhotosaGenerer');
-	for ($i = 1; $i <= $nbPhotosaGenerer; $i++) {
-		$cmd = $this->getCmd(null, 'photo'.$i);
-		if (!is_object($cmd)) {
-			$cmd = new sonoffdiyCmd();
-			$cmd->setType('info');
-			$cmd->setLogicalId('photo'.$i);
-			$cmd->setSubType('string');
-			$cmd->setEqLogic_id($this->getId());
-			$cmd->setName('Photo '.$i);
-			$cmd->setIsVisible(1);
-			$cmd->setOrder($i*6);
-			//$cmd->setDisplay('icon', '<i class="loisir-musical7"></i>');
-			$cmd->setDisplay('title_disable', 1);
-		}
-		$cmd->save();	
-		$cmd = $this->getCmd(null, 'date'.$i);
-		if (!is_object($cmd)) {
-			$cmd = new sonoffdiyCmd();
-			$cmd->setType('info');
-			$cmd->setLogicalId('date'.$i);
-			$cmd->setSubType('string');
-			$cmd->setEqLogic_id($this->getId());
-			$cmd->setName('Date '.$i);
-			$cmd->setIsVisible(1);
-			$cmd->setOrder($i*6+1);
-			//$cmd->setDisplay('icon', '<i class="loisir-musical7"></i>');
-			$cmd->setDisplay('title_disable', 1);
-		}
-		$cmd->save();		
-		
-		$cmd = $this->getCmd(null, 'site'.$i);
-		if (!is_object($cmd)) {
-			$cmd = new sonoffdiyCmd();
-			$cmd->setType('info');
-			$cmd->setLogicalId('site'.$i);
-			$cmd->setSubType('string');
-			$cmd->setEqLogic_id($this->getId());
-			$cmd->setName('Site '.$i);
-			$cmd->setIsVisible(1);
-			$cmd->setOrder($i*6+2);
-			//$cmd->setDisplay('icon', '<i class="loisir-musical7"></i>');
-			$cmd->setDisplay('title_disable', 1);
-		}
-		$cmd->save();						
-		
-		$cmd = $this->getCmd(null, 'ville'.$i);
-		if (!is_object($cmd)) {
-			$cmd = new sonoffdiyCmd();
-			$cmd->setType('info');
-			$cmd->setLogicalId('ville'.$i);
-			$cmd->setSubType('string');
-			$cmd->setEqLogic_id($this->getId());
-			$cmd->setName('Ville '.$i);
-			$cmd->setIsVisible(1);
-			$cmd->setOrder($i*6+3);
-			//$cmd->setDisplay('icon', '<i class="loisir-musical7"></i>');
-			$cmd->setDisplay('title_disable', 1);
-		}
-		$cmd->save();							
+					log::add('sonoffdiy', 'debug', 'postSAVE ');
+
+				$cmd = $this->getCmd(null, 'Off');
+				if (!is_object($cmd)) {
+					$cmd = new sonoffdiyCmd();
+					$cmd->setType('action');
+					$cmd->setLogicalId('Off');
+					$cmd->setSubType('message');
+					$cmd->setEqLogic_id($this->getId());
+					$cmd->setName('Off');
+					$cmd->setConfiguration('request', 'switch?command=off');
+					$cmd->setDisplay('title_disable', 1);
+					$cmd->setDisplay('icon', '<i class="fa jeedomapp-audiospeak"></i>');
+					$cmd->setIsVisible(1);
+				}
+				$cmd->save();
+
+				
+				$cmd = $this->getCmd(null, 'On');
+				if (!is_object($cmd)) {
+					$cmd = new sonoffdiyCmd();
+					$cmd->setType('action');
+					$cmd->setLogicalId('On');
+					$cmd->setSubType('message');
+					$cmd->setEqLogic_id($this->getId());
+					$cmd->setName('On');
+					$cmd->setConfiguration('request', 'switch?command=on');
+					$cmd->setDisplay('title_disable', 1);
+					$cmd->setDisplay('icon', '<i class="fa jeedomapp-audiospeak"></i>');
+					$cmd->setIsVisible(1);
+				}
+				$cmd->save();
 			
-		$cmd = $this->getCmd(null, 'pays'.$i);
-		if (!is_object($cmd)) {
-			$cmd = new sonoffdiyCmd();
-			$cmd->setType('info');
-			$cmd->setLogicalId('pays'.$i);
-			$cmd->setSubType('string');
-			$cmd->setEqLogic_id($this->getId());
-			$cmd->setName('Pays '.$i);
-			$cmd->setIsVisible(1);
-			$cmd->setOrder($i*6+4);
-			//$cmd->setDisplay('icon', '<i class="loisir-musical7"></i>');
-			$cmd->setDisplay('title_disable', 1);
-		}
-		$cmd->save();					
 		
-		$cmd = $this->getCmd(null, 'album'.$i);
-		if (!is_object($cmd)) {
-			$cmd = new sonoffdiyCmd();
-			$cmd->setType('info');
-			$cmd->setLogicalId('album'.$i);
-			$cmd->setSubType('string');
-			$cmd->setEqLogic_id($this->getId());
-			$cmd->setName('Album '.$i);
-			$cmd->setIsVisible(1);
-			$cmd->setOrder($i*6+5);
-			//$cmd->setDisplay('icon', '<i class="loisir-musical7"></i>');
-			$cmd->setDisplay('title_disable', 1);
-		}
-		$cmd->save();						
-	}			
+		
+/*
 	//Commande Refresh
 	$createRefreshCmd = true;
 	$refresh = $this->getCmd(null, 'refresh');
@@ -441,141 +194,15 @@ class sonoffdiy extends eqLogic {
 		$refresh->setSubType('other');
 		$refresh->setEqLogic_id($this->getId());
 		$refresh->save();
+	}*/
 	}
-	$this->setStatus('forceUpdate', false); //dans tous les cas, on repasse forceUpdate à false
-	}
+	
 	public function preUpdate() {
 	}
+	
 	public function preRemove () {
 	}
-	public static function lsjpg($_dir = '', $_type = 'backup') {
-		$cmd = repo_samba::makeSambaCommand('cd ' . $_dir . ';ls *.jpg', $_type);
-		$result = explode("\n", com_shell::execute($cmd));
-		$return = array();
-		for ($i = 2; $i < count($result) - 2; $i++) {
-			$line = array();
-			foreach (explode(" ", $result[$i]) as $value) {
-				if (trim($value) == '') {
-					continue;
-				}
-				$line[] = $value;
-			}
-			$file_info = array();
-			log::add('sonoffdiy', 'debug', 'filename->>>'.$line[0]);
-			$file_info['filename'] = $line[0];
-			$file_info['size'] = $line[2];
-			$file_info['datetime'] = date('Y-m-d H:i:s', strtotime($line[5] . ' ' . $line[4] . ' ' . $line[7] . ' ' . $line[6]));
-			$return[] = $file_info;
-		}
-		return array_reverse($result);
-	}
-	// functions de samba.repo.php repris et simplifié
-	public static function lsjpg_count($_dir = '', $_type = 'backup') {
-		$cmd = repo_samba::makeSambaCommand('cd ' . $_dir . ';ls *.jpg -U', $_type);
-		return count(explode("\n", com_shell::execute($cmd)))-4;
-	}	
-	public static function jpg_list($_dir = '') {
-		$return = array();
-		foreach (self::ls($_dir) as $file) {
-			if (stripos($file['filename'],'.jpg') !== false) {
-				$return[] = $file['filename'];
-			}
-		}
-		return $return;
-	}	
-	public static function downloadCore($_dir= '', $_fileOrigine, $_fileDestination) {
-		$cmd = repo_samba::makeSambaCommand('cd ' . $_dir . ';get '.$_fileOrigine.' '.$_fileDestination, 'backup');
-		com_shell::execute($cmd);
-		return;
-	}
-	public static function chmod777() {
-		com_shell::execute(system::getCmdSudo() . 'chmod 777 -R /var/www/html/tmp/' );
-		//return;
-	}
-	public static function ls($_dir = '', $_type = 'backup') {
-		$cmd = repo_samba::makeSambaCommand('cd ' . $_dir . ';ls *.JPG -U', $_type);
-		$result = explode("\n", com_shell::execute($cmd));
-		$return = array();
-		for ($i = 2; $i < count($result) - 2; $i++) {
-			$line = array();
-			foreach (explode(" ", $result[$i]) as $value) {
-				if (trim($value) == '') {
-					continue;
-				}
-				$line[] = $value;
-			}
-			$file_info = array();
-			$file_info['filename'] = $line[0];
-			$file_info['size'] = $line[2];
-			$file_info['datetime'] = date('Y-m-d H:i:s', strtotime($line[5] . ' ' . $line[4] . ' ' . $line[7] . ' ' . $line[6]));
-			$return[] = $file_info;
-		}
-		//usort($return, 'repo_samba::sortByDatetime');
-		return array_reverse($return);
-	}	
-	public static function Utf8_ansi($valor='') {
-		$utf8_ansi2 = array(
-		"\u00c0" =>"À",
-		"\u00c1" =>"Á",
-		"\u00c2" =>"Â",
-		"\u00c3" =>"Ã",
-		"\u00c4" =>"Ä",
-		"\u00c5" =>"Å",
-		"\u00c6" =>"Æ",
-		"\u00c7" =>"Ç",
-		"\u00c8" =>"È",
-		"\u00c9" =>"É",
-		"\u00ca" =>"Ê",
-		"\u00cb" =>"Ë",
-		"\u00cc" =>"Ì",
-		"\u00cd" =>"Í",
-		"\u00ce" =>"Î",
-		"\u00cf" =>"Ï",
-		"\u00d1" =>"Ñ",
-		"\u00d2" =>"Ò",
-		"\u00d3" =>"Ó",
-		"\u00d4" =>"Ô",
-		"\u00d5" =>"Õ",
-		"\u00d6" =>"Ö",
-		"\u00d8" =>"Ø",
-		"\u00d9" =>"Ù",
-		"\u00da" =>"Ú",
-		"\u00db" =>"Û",
-		"\u00dc" =>"Ü",
-		"\u00dd" =>"Ý",
-		"\u00df" =>"ß",
-		"\u00e0" =>"à",
-		"\u00e1" =>"á",
-		"\u00e2" =>"â",
-		"\u00e3" =>"ã",
-		"\u00e4" =>"ä",
-		"\u00e5" =>"å",
-		"\u00e6" =>"æ",
-		"\u00e7" =>"ç",
-		"\u00e8" =>"è",
-		"\u00e9" =>"é",
-		"\u00ea" =>"ê",
-		"\u00eb" =>"ë",
-		"\u00ec" =>"ì",
-		"\u00ed" =>"í",
-		"\u00ee" =>"î",
-		"\u00ef" =>"ï",
-		"\u00f0" =>"ð",
-		"\u00f1" =>"ñ",
-		"\u00f2" =>"ò",
-		"\u00f3" =>"ó",
-		"\u00f4" =>"ô",
-		"\u00f5" =>"õ",
-		"\u00f6" =>"ö",
-		"\u00f8" =>"ø",
-		"\u00f9" =>"ù",
-		"\u00fa" =>"ú",
-		"\u00fb" =>"û",
-		"\u00fc" =>"ü",
-		"\u00fd" =>"ý",
-		"\u00ff" =>"ÿ");
-		return strtr($valor, $utf8_ansi2);      
-	}	
+	
 	public function preSave() {
 		// Controle si 	nbPhotosaGenerer n'est pas vide
 		$nbPhotosaGenerer=$this->getConfiguration('nbPhotosaGenerer');
@@ -682,25 +309,168 @@ class sonoffdiy extends eqLogic {
 			}
 		}
 	}
+	
+	
 }
 class sonoffdiyCmd extends cmd {
+	
 	public function dontRemoveCmd() {
 		if ($this->getLogicalId() == 'refresh') {
 			return true;
 		}
 		return false;
 	}
+	
 	public function postSave() {
 	}
+	
 	public function preSave() {
 		if ($this->getLogicalId() == 'refresh') {
 			return;
 		}
 	}
+	
 	public function execute($_options = null) {
+		$eqLogic = $this->getEqLogic();
+		log::add('sonoffdiy', 'debug', 'Execute');
+		log::add('sonoffdiy', 'info', 'options : ' . json_encode($_options));//Request : http://192.168.0.21:3456/volume?value=50&device=G090LF118173117U
+		
 		if ($this->getLogicalId() == 'refresh') {
 			$this->getEqLogic()->refresh();
 			return;
 		}
+				$adresse_ip = $this->getEqLogic()->getConfiguration('adresse_ip');
+		log::add('sonoffdiy', 'debug', '----adresse_ip:'.$adresse_ip);
+	if ($this->getType() != 'action') return $this->getConfiguration('request');
+	list($command, $arguments) = explode('?', $this->getConfiguration('request'), 2);
+	log::add('sonoffdiy', 'info', '----Command:*'.$command.'* arguments:'.$arguments);
+	list($variable, $valeur) = explode('=', $arguments, 2);
+	log::add('sonoffdiy', 'info', '----variable:*'.$variable.'* valeur:'.$valeur);
+
+			$url = "http://".$adresse_ip.":8081/zeroconf/switch"; // Envoyer la commande Refresh via jeeAlexaapi
+			$ch = curl_init($url);
+			$data = array(
+				'deviceid'        => '45855',
+				'data'    => array(
+					'switch'      => $valeur
+				),
+			);			
+			$payload = json_encode($data);
+			curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
+			curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type:application/json'));
+			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+			$result = curl_exec($ch);
+			curl_close($ch);
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		/*
+		$request = $this->buildRequest($_options);
+		log::add('sonoffdiy', 'info', 'Request : ' . $request);//Request : http://192.168.0.21:3456/volume?value=50&device=G090LF118173117U
+		$request_http = new com_http($request);
+		$request_http->setAllowEmptyReponse(true);//Autorise les réponses vides
+		if ($this->getConfiguration('noSslCheck') == 1) $request_http->setNoSslCheck(true);
+		if ($this->getConfiguration('doNotReportHttpError') == 1) $request_http->setNoReportError(true);
+		if (isset($_options['speedAndNoErrorReport']) && $_options['speedAndNoErrorReport'] == true) {// option non activée 
+			$request_http->setNoReportError(true);
+			$request_http->exec(0.1, 1);
+			return;
+		}
+		$result = $request_http->exec($this->getConfiguration('timeout', 3), $this->getConfiguration('maxHttpRetry', 3));//Time out à 3s 3 essais
+		if (!$result) throw new Exception(__('Serveur injoignable', __FILE__));
+		// On traite la valeur de resultat (dans le cas de whennextalarm par exemple)
+		$resultjson = json_decode($result, true);
+		//log::add('sonoffdiy', 'info', 'resultjson:'.json_encode($resultjson));
+					// Ici, on va traiter une commande qui n'a pas été executée correctement (erreur type "Connexion Close")
+					if (($value =="Connexion Close") || ($detail =="Unauthorized")){
+						$value = $resultjson['value'];
+						$detail = $resultjson['detail'];
+						log::add('sonoffdiy', 'debug', '**On traite '.$value.$detail.' Connexion Close** dans la Class');
+						sleep(6);
+							if (ob_get_length()) {
+							ob_end_flush();
+							flush();
+							}	
+						log::add('sonoffdiy', 'debug', '**On relance '.$request);
+						$result = $request_http->exec($this->getConfiguration('timeout', 2), $this->getConfiguration('maxHttpRetry', 3));
+						if (!result) throw new Exception(__('Serveur injoignable', __FILE__));
+						$jsonResult = json_decode($json, true);
+						if (!empty($jsonResult)) throw new Exception(__('Echec de l\'execution: ', __FILE__) . '(' . $jsonResult['title'] . ') ' . $jsonResult['detail']);
+						$resultjson = json_decode($result, true);
+						$value = $resultjson['value'];
+					}
+		
+				
+		if (($this->getType() == 'action') && (is_array($this->getConfiguration('infoNameArray')))) {
+			foreach ($this->getConfiguration('infoNameArray') as $LogicalIdCmd) {
+				$cmd=$this->getEqLogic()->getCmd(null, $LogicalIdCmd);
+				if (is_object($cmd)) { 
+					$this->getEqLogic()->checkAndUpdateCmd($LogicalIdCmd, $resultjson[0][$LogicalIdCmd]);					
+					//log::add('sonoffdiy', 'info', $LogicalIdCmd.' prévu dans infoNameArray de '.$this->getName().' trouvé ! '.$resultjson[0]['whennextmusicalalarminfo'].' OK !');
+				} else {
+					log::add('sonoffdiy', 'warning', $LogicalIdCmd.' prévu dans infoNameArray de '.$this->getName().' mais non trouvé ! donc ignoré');
+				} 
+			}
+		} 
+		elseif (($this->getType() == 'action') && ($this->getConfiguration('infoName') != '')) {
+			// Boucle non testée !!
+				$LogicalIdCmd=$this->getConfiguration('infoName');
+				$cmd=$this->getEqLogic()->getCmd(null, $LogicalIdCmd);
+				if (is_object($cmd)) { 
+					$this->getEqLogic()->checkAndUpdateCmd($LogicalIdCmd, $resultjson[$LogicalIdCmd]);
+				} else {
+					log::add('sonoffdiy', 'warning', $LogicalIdCmd.' prévu dans infoName de '.$this->getName().' mais non trouvé ! donc ignoré');
+				} 
+		}*/
+		
+		return true;
 	}
+	/*
+	private function buildRequest($_options = array()) {
+	if ($this->getType() != 'action') return $this->getConfiguration('request');
+	list($command, $arguments) = explode('?', $this->getConfiguration('request'), 2);
+	log::add('sonoffdiy', 'info', '----Command:*'.$command.'* Request:'.json_encode($_options));
+	
+		switch ($command) {
+			case 'switch':
+	log::add('sonoffdiy', 'info', 'switch*');
+				$request = $this->build_ControledeSliderSelectMessage($_options);
+	log::add('sonoffdiy', 'info', 'switch*2');
+			break;
+			default:
+				$request = '';
+			break;
+		}
+		
+		$adresse_ip = $this->getEqLogic()->getConfiguration('adresse_ip');
+		log::add('sonoffdiy', 'debug', '----adresse_ip:'.$adresse_ip);
+		$request = scenarioExpression::setTags($request);
+		if (trim($request) == '') throw new Exception(__('Commande inconnue ou requête vide : ', __FILE__) . print_r($this, true));
+		$device=str_replace("_player", "", $this->getEqLogic()->getConfiguration('serial'));
+		return 'http://' . $adresse_ip . ':8081/' . $request . '&device=' . $device;
+	}
+	
+	private function build_ControledeSliderSelectMessage($_options = array(), $default = "Ceci est un message de test") {
+		log::add('sonoffdiy', 'info', '---->build_ControledeSliderSelectMessage');
+		$request = $this->getConfiguration('request');
+		log::add('sonoffdiy', 'info', '---->Request2:'.$request);
+		//log::add('sonoffdiy', 'debug', '---->getName:'.$this->getEqLogic()->getCmd(null, 'volumeinfo')->execCmd());
+		if ((isset($_options['slider'])) && ($_options['slider'] == "")) $_options['slider'] = $default;
+		if ((isset($_options['select'])) && ($_options['select'] == "")) $_options['select'] = $default;
+		if ((isset($_options['message'])) && ($_options['message'] == "")) $_options['message'] = $default;
+		// Si on est sur une commande qui utilise volume, on va remettre après execution le volume courant
+		//if (strstr($request, '&volume=')) $request = $request.'&lastvolume='.$lastvolume;
+		log::add('sonoffdiy', 'info', '---->Request3:'.$request);
+		$request = str_replace(array('#slider#', '#select#', '#message#', '#volume#'), 
+		array($_options['slider'], $_options['select'], urlencode($_options['message']), $_options['volume']), $request);
+		//log::add('sonoffdiy', 'info', '---->RequestFinale:'.$request);
+		return $request;
+	}	*/
 }

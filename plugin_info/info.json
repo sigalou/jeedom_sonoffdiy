@@ -1,7 +1,7 @@
 {
 	"id" : "sonoffdiy",
-	"name" : "sonoffdiy",
-	"description" : "sonoffdiy",
+	"name" : "Sonoff DIY",
+	"description" : "Sonoff DIY",
 	"licence" : "AGPL",
 	"author" : "Sigalou",
 	"require" : "3.3.24",
