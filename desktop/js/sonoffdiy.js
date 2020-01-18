@@ -94,6 +94,7 @@ function scanLienPhotos()
       }
   });
 }
+$("#table_cmd").sortable({axis: "y", cursor: "move", items: ".cmd", placeholder: "ui-state-highlight", tolerance: "intersect", forcePlaceholderSize: true});
 
 function addCmdToTable(_cmd)
 {
@@ -133,8 +134,8 @@ function addCmdToTable(_cmd)
 //     +     '<small><span class="cmdAttr"  data-l1key="configuration" data-l2key="cmd"></span> Résultat de la commande <span class="cmdAttr"  data-l1key="configuration" data-l2key="taskname"></span> (<span class="cmdAttr"  data-l1key="configuration" data-l2key="taskid"></span>)</small>'
 
  //    +     '<span class="cmdAttr"  data-l1key="configuration" data-l2key="value"></span>'
-     +   '</td>'
-     +   '<td>'
+   //  +   '</td>'
+ //    +   '<td>'
   //   +     '<input class="cmdAttr form-control input-sm" data-l1key="unite" style="width : 90px;" placeholder="{{Unite}}">'
      +   '</td>'
      +   '<td>'
@@ -180,7 +181,8 @@ function addCmdToTable(_cmd)
 
 
 	tr  +=   '<td>';
-	tr  +='<input class="cmdAttr form-control type input-sm" data-l1key="type" value="action" disabled />';
+	tr  +='<input class="cmdAttr form-control type input-sm" type="hidden" data-l1key="type" value="action" disabled />';
+	tr  +='<input class="cmdAttr form-control type input-sm" data-l1key="configuration" data-l2key="expliq" readonly />';
 	tr  +='<div '+DefinitionDivPourCommandesPredefinies+'>';
 	tr  +=     '<span class="subType" subType="' + init(_cmd.subType) + '"></span>';
 	tr  +=   '</div></td>';
@@ -198,13 +200,26 @@ function addCmdToTable(_cmd)
     tr += '<input class="tooltips cmdAttr form-control input-sm expertModeVisible" data-l1key="configuration" data-l2key="listValue" placeholder="{{Liste de valeur|texte séparé par ;}}" title="{{Liste}}">';	
 		}
 	
+	tr +=   '</td>';
+	tr +=   '<td>';
+	
+		if ((init(_cmd.logicalId)=="PulseOff")||(init(_cmd.logicalId)=="PulseOn")) {
+			tr +=     '<input class="tooltips cmdAttr form-control input-sm" data-l1key="configuration" data-l2key="parameter" style="margin-top : 3px;"> ';
+			//tr +=   '</td>';
+			//tr +=   '<td>';
+			tr +=     '';
+		}
+		else {
+			//tr +=   '</td>';
+			//tr +=   '<td>';
+		}
 	  
 	tr +=   '</td>'
      +   '<td>'
      +     '<span><label class="checkbox-inline"><input type="checkbox" class="cmdAttr checkbox-inline" data-l1key="isVisible" checked/>{{Afficher}}</label></span> '
      +   '</td>'
      + '<td>';
-
+	 
     if (is_numeric(_cmd.id))
     {
       tr += '<a class="btn btn-default btn-xs cmdAction expertModeVisible" data-action="configure"><i class="fa fa-cogs"></i></a> ';
