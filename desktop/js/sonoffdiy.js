@@ -12,89 +12,31 @@
 *
 * You should have received a copy of the GNU General Public License
 * along with Jeedom. If not, see <http://www.gnu.org/licenses/>.
+		    alert( 'vide' );
 
 */
-function CaseCocheeSamba()
-{
-	if (document.formulaire.caseSamba.checked==1) {
-		document.formulaire.caseLocal.checked=0;
-		document.formulaire.caseFacebook.checked=0;
-		$('#albumsFacebook').parent().hide();
-	}
-}
-function CaseCocheeLocal()
-{
-    if (document.formulaire.caseLocal.checked==1) {
-		document.formulaire.caseSamba.checked=0;
-		document.formulaire.caseFacebook.checked=0;
-		$('#albumsFacebook').parent().hide();
-	}
-}
-function CaseCocheeFacebook()
-{
-    if (document.formulaire.caseFacebook.checked==1) {
-		document.formulaire.caseSamba.checked=0;
-		document.formulaire.caseLocal.checked=0;
-		$('#albumsFacebook').parent().show();
-	}
-}
-function bt_enregistreAlbumFB()
-{
-	var albums = new Array();
-	for (const album of albumsFacebook) {
-		$value = $('.eqLogicAttr[data-l1key=configuration][data-l2key=albumsFacebook][data-l3key=albumfb_'+album.id+']').value();
-		albums.push([album.id,$value]);
-	}
-  $.ajax({
-      type: "POST", 
-      url: "plugins/sonoffdiy/core/ajax/sonoffdiy.ajax.php", 
-      data:
-      {
-          action: "enregistreAlbumFB",
-		  albums: json_encode(albums),
-		  id: $('.eqLogicAttr[data-l1key=id]').value()
-      },
-      dataType: 'json',
-      error: function (request, status, error)
-      {
-          handleAjaxError(request, status, error);
-      },
-      success: function (data)
-      { 
-          if (data.state != 'ok') {
-              $('#div_alert').showAlert({message: data.result, level: 'danger'});
-              return;
-          }
-          window.location.reload();
-      }
+
+$(document).ready(function() {
+	
+  
+  $('.eqLogicAttr[data-l1key=configuration][data-l2key=device]').on('change', function () {
+    if($('.eqLogicAttr[data-l1key=configuration][data-l2key=device]').value() != '')
+      $('#img_device').attr("src", 'plugins/sonoffdiy/core/config/devices/'+$(this).value()+'.png');
+    else
+      $('#img_device').attr("src",'plugins/sonoffdiy/plugin_info/sonoffdiy_icon.png');
   });
-}
-function scanLienPhotos()
-{
-  $.ajax({
-      type: "POST", 
-      url: "plugins/sonoffdiy/core/ajax/sonoffdiy.ajax.php", 
-      data:
-      {
-          action: "scanLienPhotos",
-		  id: $('.eqLogicAttr[data-l1key=id]').value()
-      },
-      dataType: 'json',
-      error: function (request, status, error)
-      {
-          handleAjaxError(request, status, error);
-      },
-      success: function (data)
-      { 
-          if (data.state != 'ok') {
-              $('#div_alert').showAlert({message: data.result, level: 'danger'});
-              return;
-          }
-          window.location.reload();
-      }
-  });
-}
-$("#table_cmd").sortable({axis: "y", cursor: "move", items: ".cmd", placeholder: "ui-state-highlight", tolerance: "intersect", forcePlaceholderSize: true});
+  
+$Model = $('.eqLogicAttr[data-l1key=configuration][data-l2key=device]').value();
+	if(($Model != '') && $($Model != null))  
+		$('#img_device').attr("src", 'plugins/sonoffdiy/core/config/devices/'+$Model+'.png');
+	else
+		$('#img_device').attr("src",'plugins/sonoffdiy/plugin_info/sonoffdiy_icon.png');
+   
+  
+});
+
+$("#table_cmd_actions").sortable({axis: "y", cursor: "move", items: ".cmd", placeholder: "ui-state-highlight", tolerance: "intersect", forcePlaceholderSize: true});
+$("#table_cmd_infos").sortable({axis: "y", cursor: "move", items: ".cmd", placeholder: "ui-state-highlight", tolerance: "intersect", forcePlaceholderSize: true});
 
 function addCmdToTable(_cmd)
 {
@@ -105,9 +47,9 @@ function addCmdToTable(_cmd)
 					if (init(_cmd.logicalId)=="")
 					DefinitionDivPourCommandesPredefinies="";
 //  if ((init(_cmd.logicalId) == 'whennextreminder') || (init(_cmd.logicalId) == '00whennextalarm') || (init(_cmd.logicalId) == 'whennextreminderlabel') || (init(_cmd.logicalId) == 'musicalalarmmusicentity') || (init(_cmd.logicalId) == 'whennextmusicalalarm')) {
-								
-  if ((init(_cmd.logicalId) == 'updateallalarms')) {
-    return;
+	$masqueCmdAction="";							
+  if ((init(_cmd.logicalId) == 'Info') || (init(_cmd.logicalId) == 'signal_strength')) {
+    $masqueCmdAction='style="display:none;"';
   }
   
   if (init(_cmd.type) == 'info')
@@ -127,18 +69,20 @@ function addCmdToTable(_cmd)
      +     '<input class="cmdAttr form-control input-sm" data-l1key="name" placeholder="{{Nom du capteur}}"></td>'
      +   '<td>'
 //     +     '<span class="type" type="' + init(_cmd.type) + '">' + jeedom.cmd.availableType() + '</span>'
-     +     '<input class="cmdAttr form-control type input-sm" data-l1key="type" value="info" disabled style="margin-bottom : 5px;" />'
+     +     '<input class="cmdAttr form-control type input-sm" data-l1key="type" value="info" type="hidden" disabled style="margin-bottom : 5px;" />'
+     +     '<input class="cmdAttr form-control type input-sm" data-l1key="configuration" data-l2key="value" readonly style="margin-bottom : 5px;" />'
+//     +     '<input class="cmdAttr form-control type input-sm" data-l1key="value" disabled style="margin-bottom : 5px;" />'
 //     +     '<span class="subType" subType="' + init(_cmd.subType) + '"></span>'
-     +   '</td>'
-     +   '<td>'
+////     +   '</td>'
+//     +   '<td>'
 //     +     '<small><span class="cmdAttr"  data-l1key="configuration" data-l2key="cmd"></span> Résultat de la commande <span class="cmdAttr"  data-l1key="configuration" data-l2key="taskname"></span> (<span class="cmdAttr"  data-l1key="configuration" data-l2key="taskid"></span>)</small>'
 
  //    +     '<span class="cmdAttr"  data-l1key="configuration" data-l2key="value"></span>'
    //  +   '</td>'
  //    +   '<td>'
   //   +     '<input class="cmdAttr form-control input-sm" data-l1key="unite" style="width : 90px;" placeholder="{{Unite}}">'
-     +   '</td>'
-     +   '<td>'
+    +   '</td>'
+    +   '<td>'
      +   '</td>'
      +   '<td>'
      +     '<span><label class="checkbox-inline"><input type="checkbox" class="cmdAttr checkbox-inline" data-l1key="isHistorized" checked/>{{Historiser}}</label></span> '
@@ -156,14 +100,14 @@ function addCmdToTable(_cmd)
      +   '</td>'
      + '</tr>';
 
-    $('#table_cmd tbody').append(tr);
-    $('#table_cmd tbody tr:last').setValues(_cmd, '.cmdAttr');
+    $('#table_cmd_infos tbody').append(tr);
+    $('#table_cmd_infos tbody tr:last').setValues(_cmd, '.cmdAttr');
   }
-
+//-------------------------------------------------------------------------------------------------------------------------------
   if (init(_cmd.type) == 'action')
   {
 	var tr =
-	'<tr class="cmd" data-cmd_id="' + init(_cmd.id) + '">'
+	'<tr ' + $masqueCmdAction + ' class="cmd" data-cmd_id="' + init(_cmd.id) + '">'
 	+   '<td>'
 	+     '<span class="cmdAttr" data-l1key="id"></span>'
 	+   '</td>'
@@ -223,15 +167,15 @@ function addCmdToTable(_cmd)
     if (is_numeric(_cmd.id))
     {
       tr += '<a class="btn btn-default btn-xs cmdAction expertModeVisible" data-action="configure"><i class="fa fa-cogs"></i></a> ';
-		   if (!((init(_cmd.name)=="Routine")||(init(_cmd.name)=="xxxxxxxx"))) //Masquer le bouton Tester
+		   if (!(init(_cmd.logicalId)=="startup")) //Masquer le bouton Tester
 			  tr += '<a class="btn btn-default btn-xs cmdAction" data-action="test"><i class="fa fa-rss"></i> {{Tester}}</a>';
 	}
     tr += '<i class="fa fa-minus-circle pull-right cmdAction cursor" data-action="remove"></i>'
      + '  </td>'
      + '</tr>';
 
-    $('#table_cmd tbody').append(tr);
-    var tr = $('#table_cmd tbody tr:last');
+    $('#table_cmd_actions tbody').append(tr);
+    var tr = $('#table_cmd_actions tbody tr:last');
     jeedom.eqLogic.builSelectCmd(
     {
       id: $(".li_eqLogic.active").attr('data-eqLogic_id'),

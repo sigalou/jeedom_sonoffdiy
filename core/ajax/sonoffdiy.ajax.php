@@ -30,14 +30,12 @@ try {
 //    log::add('sonoffdiy', 'info', 'Lancement AJAX - id='.init('id'));
 //    log::add('sonoffdiy', 'info', 'Lancement AJAX - albums='.init('albums'));
     switch (init('action')) {
-        case 'scanLienPhotos':
-            sonoffdiy::scanLienPhotos(init('id'));
-            ajax::success();
-        break;
+
          case 'enregistreAlbumFB':
             sonoffdiy::enregistreAlbumFB(init('id'),init('albums'));
             ajax::success();
-        break;   }
+        break;   
+	}
     throw new \Exception('Aucune methode correspondante');
 }
 catch(\Exception $e) {

@@ -49,7 +49,14 @@ foreach($eqLogics as $eqLogic) {
 	if (($eqLogic->getConfiguration('devicetype') != "Smarthome") && ($eqLogic->getConfiguration('devicetype') != "Player") && ($eqLogic->getConfiguration('devicetype') != "PlayList")) {
 		$opacity = ($eqLogic->getIsEnable()) ? '' : ' disableCard';
 		echo '<div class="eqLogicDisplayCard cursor prem '.$opacity.'" data-eqLogic_id="'.$eqLogic->getId().'" >';
-		echo '<img class="lazy" src="'.$plugin->getPathImgIcon().'" style="min-height:75px !important;" />';
+		
+		$alternateImg = $eqLogic->getConfiguration('device');
+		if (file_exists(dirname(__FILE__).'/../../core/config/devices/'.$alternateImg.'.png'))
+			echo '<img class="lazy" src="plugins/sonoffdiy/core/config/devices/'.$alternateImg.'.png" style="min-height:75px !important;" />';
+		else
+			echo '<img class="lazy" src="'.$plugin->getPathImgIcon().'" style="min-height:75px !important;" />';
+
+		
 		echo "<br />";
 		echo '<span class="name">'.$eqLogic->getHumanName(true, true).'</span>';
 		echo '</div>';
@@ -148,23 +155,66 @@ foreach (jeedom::getConfiguration('eqLogic:category') as $key => $value)
               </fieldset>
             </form>
           </div>
-
+					<div class="col-sm-6">
+						<form class="form-horizontal">
+							<fieldset>
+								<div class="form-group">
+									<label class="col-sm-3 control-label">{{Equipement}}</label>
+									<div class="col-sm-6">
+										<select class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="device">
+										<option value="">Aucun</option>
+										<option value="mini">Sonoff DIY MINI</option>
+										<option value="basicR3">Sonoff DIY Basic R3</option>
+										<option value="RFR3">Sonoff DIY RF R3</option>
+										</select>
+									</div>
+								</div>
+								<div class="form-group modelList" style="display:none;">
+									<label class="col-sm-3 control-label">{{Modèle}}</label>
+									<div class="col-sm-6">
+										<select class="eqLogicAttr form-control listModel" data-l1key="configuration" data-l2key="iconModel">
+										</select>
+									</div>
+								</div>
+								<div id="div_instruction"></div>
+								<div class="form-group">
+									<label class="col-sm-3 control-label">{{Création}}</label>
+									<div class="col-sm-3">
+										<span class="eqLogicAttr label label-default" data-l1key="configuration" data-l2key="createtime" title="{{Date de création de l'équipement}}" style="font-size : 1em;cursor : default;"></span>
+									</div>
+									<label class="col-sm-3 control-label">{{Communication}}</label>
+									<div class="col-sm-3">
+										<span class="eqLogicAttr label label-default" data-l1key="status" data-l2key="lastCommunication" title="{{Date de dernière communication}}" style="font-size : 1em;cursor : default;"></span>
+									</div>
+								</div>
+								<div class="form-group">
+									<label class="col-sm-3 control-label hasBatterie">{{Batterie}}</label>
+									<div class="col-sm-3 hasBatterie">
+										<span class="eqLogicAttr label label-default" style="font-size : 1em;cursor : default;" data-l1key="status" data-l2key="battery"></span> %
+									</div>
+								</div>
+								<center>
+									<img src="core/img/no_image.gif" data-original=".jpg" id="img_device" class="img-responsive" style="max-height : 250px;"  onerror="this.src='plugins/rfxcom/plugin_info/rfxcom_icon.png'"/>
+								</center>
+							</fieldset>
+						</form>
+					</div>
       </div>
       </div>
 
       <div role="tabpanel" class="tab-pane" id="commandtab">
         
 
-        <table id="table_cmd" class="table table-bordered table-condensed">
+        <table id="table_cmd_actions" class="table table-bordered table-condensed">
           <thead>
             <tr>
 
 			  
 			  <th style="width: 40px;">#</th>
-              <th style="width: 200px;">{{Nom}}</th>
+              <th style="width: 200px;">{{Nom de la commande}}</th>
               <th style="width: 300px;">{{Action}}</th>
               <th style="width: 200px;">{{Commande}}</th>
-              <th style="width: 200px;">{{Paramètres}}</th>
+              <th style="width: 200px;">{{Paramètre}}</th>
               <th style="width: 200px;">{{Options}}</th>
               <th style="width: 100px;"></th>
             </tr>
@@ -174,7 +224,23 @@ foreach (jeedom::getConfiguration('eqLogic:category') as $key => $value)
           </tbody>
         </table>
 		
+        <table id="table_cmd_infos" class="table table-bordered table-condensed">
+          <thead>
+            <tr>
 
+			  
+			  <th style="width: 40px;">#</th>
+              <th style="width: 200px;">{{Nom de l'info}}</th>
+              <th style="width: 300px;">{{Valeur}}</th>
+              <th style="width: 400px;"></th>
+              <th style="width: 200px;">{{Options}}</th>
+              <th style="width: 100px;"></th>
+            </tr>
+          </thead>
+          <tbody>
+
+          </tbody>
+        </table>
 		
 		<form class="form-horizontal">
           <fieldset>
