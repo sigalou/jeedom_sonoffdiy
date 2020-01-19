@@ -186,14 +186,39 @@ foreach (jeedom::getConfiguration('eqLogic:category') as $key => $value)
 									<div class="col-sm-3">
 										<span class="eqLogicAttr label label-default" data-l1key="status" data-l2key="lastCommunication" title="{{Date de dernière communication}}" style="font-size : 1em;cursor : default;"></span>
 									</div>
-								</div>
+								</div><br><br>
 								<div class="form-group">
-									<label class="col-sm-3 control-label hasBatterie">{{Batterie}}</label>
-									<div class="col-sm-3 hasBatterie">
-										<span class="eqLogicAttr label label-default" style="font-size : 1em;cursor : default;" data-l1key="status" data-l2key="battery"></span> %
+									<label class="col-sm-3 control-label ">{{SSID}}</label>
+									<div class="col-sm-3 ">
+										<span class="eqLogicAttr label label-default" style="font-size : 1em;cursor : default;" data-l1key="configuration" data-l2key="ssid"></span>
 									</div>
-								</div>
-								<center>
+									<label class="col-sm-3 control-label ">{{RSSI}}</label>
+									<div class="col-sm-3 ">
+										<span class="eqLogicAttr label label-default" style="font-size : 1em;cursor : default;" data-l1key="configuration" data-l2key="signalStrength"></span>
+									</div>								
+									</div>
+								<div class="form-group">
+									<label class="col-sm-3 control-label ">{{Etat de la fonction Pulse}}</label>
+									<div class="col-sm-3 ">
+										<span class="eqLogicAttr label label-default" style="font-size : 1em;cursor : default;" data-l1key="configuration" data-l2key="pulse"></span>
+									</div>
+									<label class="col-sm-3 control-label ">{{Tempo de la fonction Pulse}}</label>
+									<div class="col-sm-3 ">
+										<span class="eqLogicAttr label label-default" style="font-size : 1em;cursor : default;" data-l1key="configuration" data-l2key="pulseWidth"></span>
+									</div>								
+									</div>								
+								<div class="form-group">
+									<label class="col-sm-3 control-label ">{{Etat à la mise sous tension}}</label>
+									<div class="col-sm-3 ">
+										<span class="eqLogicAttr label label-default" style="font-size : 1em;cursor : default;" data-l1key="configuration" data-l2key="startup"></span>
+									</div>
+									<label class="col-sm-3 control-label ">{{Dernière Mise à jour}}</label>
+									<div class="col-sm-3 ">
+										<span class="eqLogicAttr label label-default" style="font-size : 1em;cursor : default;" data-l1key="configuration" data-l2key="LastMAJ"></span>
+									</div>								
+									</div>	
+									<br><br>									
+									<center>
 									<img src="core/img/no_image.gif" data-original=".jpg" id="img_device" class="img-responsive" style="max-height : 250px;"  onerror="this.src='plugins/rfxcom/plugin_info/rfxcom_icon.png'"/>
 								</center>
 							</fieldset>

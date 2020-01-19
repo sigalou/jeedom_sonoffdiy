@@ -11,7 +11,7 @@
 	"documentation" : "http://sigalou-domotique.fr/sonoff-diy/83-plugin-sonoff-diy-documentation",
 	"category" : "devicecommunication",
   "hasDependency" : 0,
-  "hasOwnDeamon" : 0,
+  "hasOwnDeamon" : 1,
 	"language" : ["fr_FR","en_US"],
 	"compatibility" : ["miniplus","smart","rpi","docker","diy","mobile"]
 }
