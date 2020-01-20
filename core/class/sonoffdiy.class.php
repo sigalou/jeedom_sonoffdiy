@@ -178,9 +178,14 @@ class sonoffdiy extends eqLogic {
 						$data_data_decoded=json_decode($data_data, true);
 						log::add('sonoffdiy_mDNS','debug',"  | séquence : ".$sequence);
 						log::add('sonoffdiy_mDNS','debug',"  | données : ".$data_data);
+						log::add('sonoffdiy_mDNS','debug',"  | données : ".json_encode($data_data_decoded));
 						log::add('sonoffdiy_mDNS','debug',"  | ip : ".$ip);
 						log::add('sonoffdiy_mDNS','debug',"  | seq : ".$sequence_decoded['seq']);
 						log::add('sonoffdiy_mDNS','debug',"  | id : ".$sequence_decoded['id']);
+							
+							
+						self::sauvegardeCmdsInfo($data_data_decoded, true);
+
 							
 							
 							
@@ -203,6 +208,22 @@ class sonoffdiy extends eqLogic {
 		}
 	}		
 		
+	
+	public function sauvegardeCmdsInfo($_data_decoded, $save) {
+						foreach (eqLogic::byType('sonoffdiy') as $eqLogic){
+							foreach ($eqLogic->getCmd('info') as $cmd) {
+							//log::add('sonoffdiy_mDNS','debug'," **** rssi : ".$data_data_decoded['rssi']);
+							//log::add('sonoffdiy_mDNS','debug'," **** switch : ".$data_data_decoded['switch']);
+							//log::add('sonoffdiy_mDNS','debug'," **** getLogicalId : ".$cmd->getLogicalId());
+							$cmd->enregistreCmdInfo($cmd->getLogicalId(), $_data_decoded, $eqLogic);
+							}
+							if ($save) $eqLogic->save(); // à voir si on garde c'est que pour actualiser les infos du desktop
+
+						}
+
+	}	
+	
+	
 	
 	public function stopDaemon() {
 		log::add('sonoffdiy', 'debug', 'stopDaemon');
@@ -232,7 +253,7 @@ class sonoffdiy extends eqLogic {
 	
 	
 	public function postSave() {
-					//log::add('sonoffdiy', 'debug', 'postSAVE ');
+					log::add('sonoffdiy', 'debug', 'Sauvegarde '.$this->getName());
 					
 				
 		$premierSAVE = false;
@@ -449,11 +470,11 @@ class sonoffdiy extends eqLogic {
 				}
 				$cmd->save();
 								
-				$cmd = $this->getCmd(null, 'signalStrength');
+				$cmd = $this->getCmd(null, 'rssi');
 				if (!is_object($cmd)) {
 					$cmd = new sonoffdiyCmd();
 					$cmd->setType('info');
-					$cmd->setLogicalId('signalStrength');
+					$cmd->setLogicalId('rssi');
 					$cmd->setSubType('string');
 					$cmd->setEqLogic_id($this->getId());
 					$cmd->setName('RSSI');
@@ -648,14 +669,21 @@ class sonoffdiyCmd extends cmd {
 		
 		
 		
-		
+		/*
 		$data=json_decode($result['data'], true);
-		self::enregistreCmdInfo('signalStrength', $data, $eqLogic);
+		self::enregistreCmdInfo('rssi', $data, $eqLogic);
 		self::enregistreCmdInfo('switch', $data, $eqLogic);
 		self::enregistreCmdInfo('startup', $data, $eqLogic);
 		self::enregistreCmdInfo('pulse', $data, $eqLogic);
 		self::enregistreCmdInfo('pulseWidth', $data, $eqLogic);
 		self::enregistreCmdInfo('ssid', $data, $eqLogic);
+		log::add('sonoffdiy', 'debug', 'Mise à jour '.$data);*/
+		$eqLogic->sauvegardeCmdsInfo(json_decode($result['data'], false));
+		
+		
+		
+		
+		
 		/*
 				if (($this->getType() == 'action') && ($this->getConfiguration('infoName') != '')) {
 				$LogicalIdCmd=$this->getConfiguration('infoName');
@@ -680,11 +708,15 @@ class sonoffdiyCmd extends cmd {
 		return true;
 	}
 		public function enregistreCmdInfo($_CmdInfo, $_Data, $_eqLogic) {
+			//log::add('sonoffdiy_mDNS', 'debug', '$_Data[$_CmdInfo] : '.$_Data[$_CmdInfo]);
 		if ($_Data[$_CmdInfo]!="") {
 			$valeur_enregistree=$_Data[$_CmdInfo];
-			//log::add('sonoffdiy', 'debug', 'Enregistrement de '.$_CmdInfo.' dans '.$_eqLogic->getName().' : '.$_Data[$_CmdInfo]);
+			//if ($_CmdInfo=='signalStrength') $_CmdInfo='rssi';
+			log::add('sonoffdiy', 'debug', 'Enregistrement de '.$_CmdInfo.' dans '.$_eqLogic->getName().' : '.$_Data[$_CmdInfo]);
 			//if ($valeur_enregistree=='on') $valeur_enregistree=1;	if ($valeur_enregistree=='off') $valeur_enregistree=0;
 			$_eqLogic->checkAndUpdateCmd($_CmdInfo, $valeur_enregistree);	
-		}		
+		}
+		//else log::add('sonoffdiy', 'debug', 'ERREUR Enregistrement de '.$_CmdInfo.' dans '.$_eqLogic->getName().' : '.$_Data[$_CmdInfo]. "dans ".json_decode($_Data, true));
+			//log::add('sonoffdiy_mDNS', 'debug', 'ERREUR Enregistrements dans '.json_decode($_Data, true));
 		}
 }

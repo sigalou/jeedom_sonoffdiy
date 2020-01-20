@@ -194,7 +194,7 @@ foreach (jeedom::getConfiguration('eqLogic:category') as $key => $value)
 									</div>
 									<label class="col-sm-3 control-label ">{{RSSI}}</label>
 									<div class="col-sm-3 ">
-										<span class="eqLogicAttr label label-default" style="font-size : 1em;cursor : default;" data-l1key="configuration" data-l2key="signalStrength"></span>
+										<span class="eqLogicAttr label label-default" style="font-size : 1em;cursor : default;" data-l1key="configuration" data-l2key="rssi"></span>
 									</div>								
 									</div>
 								<div class="form-group">
