@@ -186,7 +186,7 @@ foreach (jeedom::getConfiguration('eqLogic:category') as $key => $value)
 									<div class="col-sm-3">
 										<span class="eqLogicAttr label label-default" data-l1key="status" data-l2key="lastCommunication" title="{{Date de dernière communication}}" style="font-size : 1em;cursor : default;"></span>
 									</div>
-								</div><br><br>
+								</div>
 								<div class="form-group">
 									<label class="col-sm-3 control-label ">{{SSID}}</label>
 									<div class="col-sm-3 ">
@@ -215,19 +215,15 @@ foreach (jeedom::getConfiguration('eqLogic:category') as $key => $value)
 									<label class="col-sm-3 control-label ">{{Dernière Mise à jour}}</label>
 									<div class="col-sm-3 ">
 										<span class="eqLogicAttr label label-default" style="font-size : 1em;cursor : default;" data-l1key="configuration" data-l2key="LastMAJ"></span>
-										<span class="eqLogicAttr label label-default" style="font-size : 1em;cursor : default;" data-l1key="configuration" data-l2key="switch"></span>
 									</div>								
 									</div>	
-									<br><br>									
+								<div class="form-group">
+									<label class="col-sm-3 control-label ">{{ID détectée}}</label>
+									<div class="col-sm-3 ">
+										<span class="eqLogicAttr label label-default" style="font-size : 1em;cursor : default;" data-l1key="configuration" data-l2key="IDdetectee"></span>
+									</div>
+										<br><br>									
 									<center>
-											<?php 
-											
-													
-		//echo '<div class="col-sm-3>';
-
-											if (1==1)
-			echo '<i id="img_switch" class="icon-sign-blank" style="color: red; #ccc;float:center" title="Offline"></i>';
-		?>
 									<img src="core/img/no_image.gif" data-original=".jpg" id="img_device" class="img-responsive" style="max-height : 250px;"  onerror="this.src='plugins/sonoffdiy/plugin_info/sonoffdiy_icon.png'"/>
 								</center>
 							</fieldset>

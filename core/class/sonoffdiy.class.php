@@ -176,15 +176,16 @@ class sonoffdiy extends eqLogic {
 						{
 						$last_IPetSEQ=$ip.".".$sequence_decoded['seq'];
 						$data_data_decoded=json_decode($data_data, true);
+						$data_data_decoded['IDdetectee']=$sequence_decoded['id'];
 						log::add('sonoffdiy_mDNS','debug',"  | séquence : ".$sequence);
-						log::add('sonoffdiy_mDNS','debug',"  | données : ".$data_data);
+						//log::add('sonoffdiy_mDNS','debug',"  | données : ".$data_data);
 						log::add('sonoffdiy_mDNS','debug',"  | données : ".json_encode($data_data_decoded));
 						log::add('sonoffdiy_mDNS','debug',"  | ip : ".$ip);
 						log::add('sonoffdiy_mDNS','debug',"  | seq : ".$sequence_decoded['seq']);
 						log::add('sonoffdiy_mDNS','debug',"  | id : ".$sequence_decoded['id']);
 							
 							
-						self::sauvegardeCmdsInfo($data_data_decoded, true);
+						self::sauvegardeCmdsInfo($data_data_decoded, true, $sequence_decoded['id']);
 
 							
 							
@@ -209,17 +210,31 @@ class sonoffdiy extends eqLogic {
 	}		
 		
 	
-	public function sauvegardeCmdsInfo($_data_decoded, $save) {
+	public function sauvegardeCmdsInfo($_data_decoded, $save, $_ID) {
+						//log::add('sonoffdiy_mDNS','debug'," **** Lancement sauvegardeCmdsInfo");
+						$cestBonOnaTrouveleDevice=false;
 						foreach (eqLogic::byType('sonoffdiy') as $eqLogic){
+							//log::add('sonoffdiy_mDNS','debug'," TTTTTTTTTTTTTTTTTTTTTTTTTTTTTEST : ".$eqLogic->getConfiguration('device_id')." / ".$_ID);
+							if (!($eqLogic->getConfiguration('device_id') == $_ID)) continue;
 							foreach ($eqLogic->getCmd('info') as $cmd) {
 							//log::add('sonoffdiy_mDNS','debug'," **** rssi : ".$data_data_decoded['rssi']);
 							//log::add('sonoffdiy_mDNS','debug'," **** switch : ".$data_data_decoded['switch']);
 							//log::add('sonoffdiy_mDNS','debug'," **** getLogicalId : ".$cmd->getLogicalId());
+							//log::add('sonoffdiy_mDNS','debug'," **>>** _data_decoded : ".$data_data_decoded);
 							$cmd->enregistreCmdInfo($cmd->getLogicalId(), $_data_decoded, $eqLogic);
+							//log::add('sonoffdiy_mDNS','debug'," FINI**** getLogicalId : ".$cmd->getLogicalId());
+							$cestBonOnaTrouveleDevice=true;
 							}
 							if ($save) $eqLogic->save(); // à voir si on garde c'est que pour actualiser les infos du desktop
-
 						}
+						if (!$cestBonOnaTrouveleDevice) {
+						log::add('sonoffdiy_mDNS','warning',"**********************************************************************************************");
+						log::add('sonoffdiy_mDNS','warning',"**********************************************************************************************");
+						log::add('sonoffdiy_mDNS','warning',"* Il y a un souci dans l'ID d'un des devices, il devrait y avoir un device avec l'ID : ".$_ID);
+						log::add('sonoffdiy_mDNS','warning',"**********************************************************************************************");
+						log::add('sonoffdiy_mDNS','warning',"**********************************************************************************************");
+						}
+							
 
 	}	
 	
@@ -235,7 +250,7 @@ class sonoffdiy extends eqLogic {
 
 	public function refresh() {
 		
-			//log::add('sonoffdiy', 'info', '--Refresh');
+			//log::add('sonoffdiy', 'info', '>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>--Refresh');
 			
 			try {
 				foreach ($this->getCmd('action') as $cmd) {
@@ -485,6 +500,21 @@ class sonoffdiy extends eqLogic {
 				}
 				$cmd->save();
 				
+				$cmd = $this->getCmd(null, 'IDdetectee');
+				if (!is_object($cmd)) {
+					$cmd = new sonoffdiyCmd();
+					$cmd->setType('info');
+					$cmd->setLogicalId('IDdetectee');
+					$cmd->setSubType('string');
+					$cmd->setEqLogic_id($this->getId());
+					$cmd->setName('ID');
+					$cmd->setIsVisible(0);
+					$cmd->setOrder(7);
+					//$cmd->setDisplay('icon', '<i class="fa fa-volume-up"></i>');
+					//$cmd->setDisplay('forceReturnLineBefore', true);
+				}
+				$cmd->save();	
+				
 				$cmd = $this->getCmd(null, 'signal_strength');
 				if (!is_object($cmd)) {
 					$cmd = new sonoffdiyCmd();
@@ -532,6 +562,8 @@ class sonoffdiy extends eqLogic {
 	
 	public function preSave() {
 		
+			
+			//log::add('sonoffdiy', 'debug', 'Presave '.$this->getName());
 			try {
 				foreach ($this->getCmd('info') as $cmd) {
 					//log::add('sonoffdiy', 'info', '--------->Test CONF de la commande '.$cmd->getName().'--'.$cmd->execCmd());
@@ -667,6 +699,7 @@ class sonoffdiyCmd extends cmd {
 			// Pour avoir les codes erreur : https://github.com/itead/Sonoff_Devices_DIY_Tools/blob/master/SONOFF%20DIY%20MODE%20Protocol%20Doc%20v1.4.md
 		}
 		
+			//log::add('sonoffdiy_mDNS', 'debug', '-----------------------------------------------------------');
 		
 		
 		/*
@@ -678,7 +711,14 @@ class sonoffdiyCmd extends cmd {
 		self::enregistreCmdInfo('pulseWidth', $data, $eqLogic);
 		self::enregistreCmdInfo('ssid', $data, $eqLogic);
 		log::add('sonoffdiy', 'debug', 'Mise à jour '.$data);*/
-		$eqLogic->sauvegardeCmdsInfo(json_decode($result['data'], false));
+		$_id=$eqLogic->getConfiguration('device_id');
+		//$_id='1000ab1e9';
+		//log::add('sonoffdiy_mDNS', 'debug', '$_id::: '.$_id);
+		//log::add('sonoffdiy_mDNS', 'debug', 'data:1:: '.$result['data']);
+		//$ss=json_decode($result['data'], true);
+		//log::add('sonoffdiy_mDNS', 'debug', 'data:2:: '.$result['data']);
+		//log::add('sonoffdiy_mDNS', 'debug', 'data:3:: '.json_decode($result['data'], true));
+		$eqLogic->sauvegardeCmdsInfo(json_decode($result['data'], true), false, $_id);
 		
 		
 		
@@ -708,14 +748,23 @@ class sonoffdiyCmd extends cmd {
 		return true;
 	}
 		public function enregistreCmdInfo($_CmdInfo, $_Data, $_eqLogic) {
-			//log::add('sonoffdiy_mDNS', 'debug', '$_Data[$_CmdInfo] : '.$_Data[$_CmdInfo]);
-		if ($_Data[$_CmdInfo]!="") {
-			$valeur_enregistree=$_Data[$_CmdInfo];
-			//if ($_CmdInfo=='signalStrength') $_CmdInfo='rssi';
-			log::add('sonoffdiy', 'debug', 'Enregistrement de '.$_CmdInfo.' dans '.$_eqLogic->getName().' : '.$_Data[$_CmdInfo]);
-			//if ($valeur_enregistree=='on') $valeur_enregistree=1;	if ($valeur_enregistree=='off') $valeur_enregistree=0;
-			$_eqLogic->checkAndUpdateCmd($_CmdInfo, $valeur_enregistree);	
-		}
+			//log::add('sonoffdiy_mDNS', 'debug', 'debut  enregistreCmdInfo ');
+			//log::add('sonoffdiy_mDNS', 'debug', '$_Data1 : '.$_Data);
+		
+			if (array_key_exists($_CmdInfo,$_Data)) {
+				
+			//log::add('sonoffdiy_mDNS', 'debug', '$_CmdInfo : '.$_CmdInfo);
+			//log::add('sonoffdiy_mDNS', 'debug', '$_Data2 : '.json_encode($_Data));
+			//log::add('sonoffdiy_mDNS', 'debug', '>>>>>>>>>>>>>>Data[CmdInfo] : '.$_Data['switch']);
+			//log::add('sonoffdiy_mDNS', 'debug', '>>>>>>>>>>>>>>Data[CmdInfo] : '.$_Data[$_CmdInfo]);
+				if ($_Data[$_CmdInfo]!="") {
+					$valeur_enregistree=$_Data[$_CmdInfo];
+					//if ($_CmdInfo=='signalStrength') $_CmdInfo='rssi';
+					log::add('sonoffdiy', 'debug', 'Enregistrement de '.$_CmdInfo.' dans '.$_eqLogic->getName().' : '.$_Data[$_CmdInfo]);
+					//if ($valeur_enregistree=='on') $valeur_enregistree=1;	if ($valeur_enregistree=='off') $valeur_enregistree=0;
+					$_eqLogic->checkAndUpdateCmd($_CmdInfo, $valeur_enregistree);	
+				}
+			}
 		//else log::add('sonoffdiy', 'debug', 'ERREUR Enregistrement de '.$_CmdInfo.' dans '.$_eqLogic->getName().' : '.$_Data[$_CmdInfo]. "dans ".json_decode($_Data, true));
 			//log::add('sonoffdiy_mDNS', 'debug', 'ERREUR Enregistrements dans '.json_decode($_Data, true));
 		}
