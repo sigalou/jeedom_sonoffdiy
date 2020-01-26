@@ -17,8 +17,20 @@
 */
 
 $(document).ready(function() {
+
 	
-  
+
+  //$('.eqLogicAttr[data-l1key=configuration][data-l2key=switch]').on('change', function () {
+    if($('.eqLogicAttr[data-l1key=configuration][data-l2key=switch]').value() != 'Off') {
+		$('#img_switch').attr("style", 'color: red; #ccc;float:center');	
+		$('#img_switch').attr("class", 'fas fa-bolt fa-3x');
+	}
+    else {
+		$('#img_switch').attr("style", 'color: green; #ccc;float:center');	
+		$('#img_switch').attr("class", 'fas fa-times fa-3x');
+	}
+ // });
+
   $('.eqLogicAttr[data-l1key=configuration][data-l2key=device]').on('change', function () {
     if($('.eqLogicAttr[data-l1key=configuration][data-l2key=device]').value() != '')
       $('#img_device').attr("src", 'plugins/sonoffdiy/core/config/devices/'+$(this).value()+'.png');
