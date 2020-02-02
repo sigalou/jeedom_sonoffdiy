@@ -7,6 +7,8 @@ if (!class_exists('mDNS')) {
 
 }
 
+// Ressources : https://notenoughtech.com/featured/sonoff-r3-diy-mode/
+
 class sonoffdiy extends eqLogic {
 
 
