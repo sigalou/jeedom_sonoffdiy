@@ -24,7 +24,7 @@ class sonoffdiy extends eqLogic {
 		return $return;
 	}
 	public static function cron() {
-		log::add('sonoffdiy', 'debug', '!!************************** Start cron update sonoffdiy *******************************!!');
+		//log::add('sonoffdiy', 'debug', '!!************************** Start cron update sonoffdiy *******************************!!');
 		return;
 	}
 	public static function deamon_start($_debug = false) {
@@ -72,7 +72,8 @@ class sonoffdiy extends eqLogic {
             exit();
         } 
         if (socket_bind($sock, $address, $port) === false) {
-           log::add('sonoffdiy', 'debug', "socket_bind() failed: reason: " . socket_strerror(socket_last_error($sock))." adress :".$address." port :". $port);
+           log::add('sonoffdiy', 'debug', "socket_bind() failed: reason: " . socket_strerror(socket_last_error($sock))." port :". $port);
+           log::add('sonoffdiy', 'debug', "Un autre PLUGIN utilise déja ce port, désactivez les plugins un par un pour voir lequel est en conflit");
             exit();
         }
         if (socket_listen($sock, 5) === false) {
