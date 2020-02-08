@@ -52,6 +52,8 @@ class sonoffdiy extends eqLogic {
 	}
 	public static function daemon() { 
 		//gc_enable();
+		log::add('sonoffdiy', 'debug', 'Lancement du Daemon mDNS');
+		log::add('sonoffdiy_mDNS', 'debug', '-----------------------------------------------------------------');
 
 		$port = 6900; // port
         $address = '0.0.0.0';
@@ -77,7 +79,6 @@ class sonoffdiy extends eqLogic {
         socket_set_nonblock($sock);
         // search for connected devices
 		$time=0;
-		log::add('sonoffdiy_mDNS', 'debug', '-----------------------------------------------------------------');
 		log::add('sonoffdiy_mDNS', 'debug', 'Lancement du Daémon');
 		//log::add('sonoffdiy_mDNS','debug','Mémoire utilisée :'.round(memory_get_usage()/1000). " ko ".memory_get_usage()%1000 . " o ");
 		//$memDep = round(memory_get_usage()/1000);
