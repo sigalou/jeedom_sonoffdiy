@@ -52,31 +52,34 @@ class sonoffdiy extends eqLogic {
 	}
 	public static function daemon() { 
 		//gc_enable();
-		log::add('sonoffdiy', 'debug', 'Lancement du Daemon mDNS');
+		log::add('sonoffdiy', 'debug', 'Lancement du Daemon mDNS Debug 1');
 		log::add('sonoffdiy_mDNS', 'debug', '-----------------------------------------------------------------');
 
 		$port = 6900; // port
         $address = '0.0.0.0';
 		$mdns = new mDNS();
+		log::add('sonoffdiy', 'debug', 'Lancement du Daemon mDNS Debug 2');
 		
 		if (isset($sock) && $sock != NULL) socket_close($sock);
+		log::add('sonoffdiy', 'debug', 'Lancement du Daemon mDNS Debug 3');
 
         if (($sock = socket_create(AF_INET, SOCK_STREAM, SOL_TCP)) === false) {
-			log::add('sonoffdiy_mDNS', 'debug', "socket_create() failed: reason: " . socket_strerror(socket_last_error()));
+			log::add('sonoffdiy', 'debug', "socket_create() failed: reason: " . socket_strerror(socket_last_error()));
             exit();
         }
         if (!socket_set_option($sock, SOL_SOCKET, SO_REUSEADDR, 1)) {
-            log::add('sonoffdiy_mDNS', 'debug', "socket_set_option() failed: reason: " . socket_strerror(socket_last_error()));
+            log::add('sonoffdiy', 'debug', "socket_set_option() failed: reason: " . socket_strerror(socket_last_error()));
             exit();
         } 
         if (socket_bind($sock, $address, $port) === false) {
-           log::add('sonoffdiy_mDNS', 'debug', "socket_bind() failed: reason: " . socket_strerror(socket_last_error($sock)));
+           log::add('sonoffdiy', 'debug', "socket_bind() failed: reason: " . socket_strerror(socket_last_error($sock)));
             exit();
         }
         if (socket_listen($sock, 5) === false) {
-           log::add('sonoffdiy_mDNS', 'debug', "socket_listen() failed: reason: " . socket_strerror(socket_last_error($sock)));
+           log::add('sonoffdiy', 'debug', "socket_listen() failed: reason: " . socket_strerror(socket_last_error($sock)));
         }
         socket_set_nonblock($sock);
+		log::add('sonoffdiy', 'debug', 'Lancement du Daemon mDNS Debug 4');
         // search for connected devices
 		$time=0;
 		log::add('sonoffdiy_mDNS', 'debug', 'Lancement du Daémon');
