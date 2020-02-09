@@ -55,7 +55,7 @@ class sonoffdiy extends eqLogic {
 		//log::add('sonoffdiy', 'debug', 'Lancement du Daemon mDNS Debug 1');
 		log::add('sonoffdiy_mDNS', 'debug', '-----------------------------------------------------------------');
 
-		$port = 6900; // port
+		$port = 6901; // port
         $address = '0.0.0.0';
 		$mdns = new mDNS();
 		//log::add('sonoffdiy', 'debug', 'Lancement du Daemon mDNS Debug 2');
