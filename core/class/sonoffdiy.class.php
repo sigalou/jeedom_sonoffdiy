@@ -638,8 +638,8 @@ class sonoffdiyCmd extends cmd {
 	$parameter=(int)$this->getConfiguration('parameter');
 	//log::add('sonoffdiy', 'info', '----variable:*'.$variable.'* valeur:'.$valeur);
 	//log::add('sonoffdiy', 'info', '----Command:*'.$command.'* arguments:'.$arguments);
-	if ($_options['select'] != '') $valeur=$_options['select']; // Pour Etat Initial
-	if ($_options['message'] != '') $parameter=$_options['message']; // pour Pulse ON
+	if ((isset($_options['select'])) && ($_options['select'] != '')) $valeur=$_options['select']; // Pour Etat Initial
+	if ((isset($_options['message'])) && ($_options['message'] != '')) $parameter=$_options['message']; // pour Pulse ON
 	
 
 			$url = "http://".$adresse_ip.":8081/zeroconf/".$command; // Envoyer la commande Refresh via jeeAlexaapi
@@ -725,7 +725,7 @@ class sonoffdiyCmd extends cmd {
 		//$ss=json_decode($result['data'], true);
 		//log::add('sonoffdiy_mDNS', 'debug', 'data:2:: '.$result['data']);
 		//log::add('sonoffdiy_mDNS', 'debug', 'data:3:: '.json_decode($result['data'], true));
-		$eqLogic->sauvegardeCmdsInfo(json_decode($result['data'], true), false, $_id);
+		if (isset($result['data'])) $eqLogic->sauvegardeCmdsInfo(json_decode($result['data'], true), false, $_id);
 		
 		
 		
@@ -756,12 +756,12 @@ class sonoffdiyCmd extends cmd {
 	}
 		public function enregistreCmdInfo($_CmdInfo, $_Data, $_eqLogic) {
 			//log::add('sonoffdiy_mDNS', 'debug', 'debut  enregistreCmdInfo ');
-			//log::add('sonoffdiy_mDNS', 'debug', '$_Data1 : '.$_Data);
+			log::add('sonoffdiy_mDNS', 'debug', '$_Data1 : '.$_Data);
 		
-			if (array_key_exists($_CmdInfo,$_Data)) {
+			if (isset($_Data) && (array_key_exists($_CmdInfo,$_Data))) {
 				
 			//log::add('sonoffdiy_mDNS', 'debug', '$_CmdInfo : '.$_CmdInfo);
-			//log::add('sonoffdiy_mDNS', 'debug', '$_Data2 : '.json_encode($_Data));
+			log::add('sonoffdiy_mDNS', 'debug', '$_Data2 : '.json_encode($_Data));
 			//log::add('sonoffdiy_mDNS', 'debug', '>>>>>>>>>>>>>>Data[CmdInfo] : '.$_Data['switch']);
 			//log::add('sonoffdiy_mDNS', 'debug', '>>>>>>>>>>>>>>Data[CmdInfo] : '.$_Data[$_CmdInfo]);
 				if ($_Data[$_CmdInfo]!="") {
