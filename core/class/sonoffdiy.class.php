@@ -8,6 +8,7 @@ if (!class_exists('mDNS')) {
 }
 
 // Ressources : https://notenoughtech.com/featured/sonoff-r3-diy-mode/
+//http://developers.sonoff.tech/sonoff-diy-mode-api-protocol.html#RESTful-API-Control-Protocol%EF%BC%88HTTP-POST%EF%BC%89
 
 class sonoffdiy extends eqLogic {
 
@@ -189,19 +190,26 @@ class sonoffdiy extends eqLogic {
 						log::add('sonoffdiy_mDNS','debug',"  | données : ".json_encode($data_data_decoded));
 						log::add('sonoffdiy_mDNS','debug',"  | ip : ".$ip);
 						log::add('sonoffdiy_mDNS','debug',"  | seq : ".$sequence_decoded['seq']);
+						log::add('sonoffdiy_mDNS','debug',"  | type : ".$sequence_decoded['type']);
 						log::add('sonoffdiy_mDNS','debug',"  | id : ".$sequence_decoded['id']);
-							
-							
+						
+ 						if ((isset($sequence_decoded['type'])) && ($sequence_decoded['type'] =="plug")) {
+						log::add('sonoffdiy_mDNS','warning',"**********************************************************************************************");
+						log::add('sonoffdiy_mDNS','warning',"**********************************************************************************************");
+						log::add('sonoffdiy_mDNS','warning',"* un device avec l'ID : ".$_ID." est bien détecté mais est en mode eWelink, donc non compatible LAN");
+						log::add('sonoffdiy_mDNS','warning',"**********************************************************************************************");
+						log::add('sonoffdiy_mDNS','warning',"**********************************************************************************************");
+						} else {
 						self::sauvegardeCmdsInfo($data_data_decoded, true, $sequence_decoded['id']);
-
+						}
 							
 							
 							
 							
 							
 						}
-						else
-						log::add('sonoffdiy_mDNS','debug',"  | Trame non traitée identique à la précédente -> ignorée");
+						//else
+						//log::add('sonoffdiy_mDNS','debug',"  | Trame non traitée identique à la précédente -> ignorée");
 
 					}
 					else log::add('sonoffdiy_mDNS', 'debug', "Trame mDNS entrante depuis ".$inpacket->answerrrs[0]->name." -> ignorée");
@@ -275,7 +283,7 @@ class sonoffdiy extends eqLogic {
 	
 	
 	public function postSave() {
-					log::add('sonoffdiy', 'debug', 'Sauvegarde '.$this->getName());
+					log::add('sonoffdiy', 'debug', '╚═══════════════════════Sauvegarde '.$this->getName().'══════════════════════════════════════════════════════════════════════════════════════');
 					
 				
 		$premierSAVE = false;
@@ -557,6 +565,7 @@ class sonoffdiy extends eqLogic {
 */
 
 
+	//	log::add('alexaamazonmusic', 'info', ' ╚══════════════════════════════════════════════════════════════════════════════════════════════════════════');
 
 
 	}
@@ -638,8 +647,11 @@ class sonoffdiyCmd extends cmd {
 	$parameter=(int)$this->getConfiguration('parameter');
 	//log::add('sonoffdiy', 'info', '----variable:*'.$variable.'* valeur:'.$valeur);
 	//log::add('sonoffdiy', 'info', '----Command:*'.$command.'* arguments:'.$arguments);
-	if ((isset($_options['select'])) && ($_options['select'] != '')) $valeur=$_options['select']; // Pour Etat Initial
-	if ((isset($_options['message'])) && ($_options['message'] != '')) $parameter=$_options['message']; // pour Pulse ON
+	//log::add('sonoffdiy', 'info', '----Options:*'.json_encode($_options));
+	//log::add('sonoffdiy', 'info', '----parameter:*'.$parameter);
+	//if ((isset($_options['select'])) && ($_options['select'] != '')) $valeur=$_options['select']; // Pour Etat Initial
+	//if ((isset($_options['message'])) && ($_options['message'] != '')) $parameter=$_options['message']; // pour Pulse ON
+	if (($command=="startup") && (isset($_options['select'])) && ($_options['select'] != '')) $valeur="stay";
 	
 
 			$url = "http://".$adresse_ip.":8081/zeroconf/".$command; // Envoyer la commande Refresh via jeeAlexaapi
@@ -662,6 +674,8 @@ class sonoffdiyCmd extends cmd {
 			);				
 		
 			if ($command=="pulse")	
+				
+		//log::add('sonoffdiy', 'info', ' >══>══>══>══>════════════[parameter: '.$parameter.'═════════════════════════════════════════════════════════');
 				if ($parameter>500) 
 					$data = array(
 						'deviceid'        => $device_id,
@@ -685,7 +699,9 @@ class sonoffdiyCmd extends cmd {
 			);	
 			
 			$payload = json_encode($data);
-	log::add('sonoffdiy', 'info', '>> Envoyé à '.$eqLogic->getName().' : '.$url." ".$payload);
+		log::add('sonoffdiy', 'info', ' ');
+		log::add('sonoffdiy', 'info', ' ╔══════════════════════[Envoi sur '.$eqLogic->getName().']═════════════════════════════════════════════════════════');
+		//log::add('sonoffdiy', 'info', '╠═══> de '.$url." ".$payload);
 			curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
 			curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type:application/json'));
 			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -695,14 +711,15 @@ class sonoffdiyCmd extends cmd {
 			curl_close($ch);
 			
 		if (is_null($result)) {
-			log::add('sonoffdiy', 'error', 'Souci sur la commande '.$this->getName().' de '.$eqLogic->getName());
+			log::add('sonoffdiy', 'error', '║ ******** Souci sur la commande '.$this->getName().' de '.$eqLogic->getName().' ********');
 			return false;
 		}
-		log::add('sonoffdiy', 'info', '<< Réponse de '.$eqLogic->getName().' : '.json_encode($result));
+		log::add('sonoffdiy', 'info', ' ║ ════envoi══> '.$url." ".$payload);
+		log::add('sonoffdiy', 'info', ' ║ <══réponse═ '.json_encode($result));
 		//log::add('sonoffdiy', 'debug', '<< Data recues de '.$eqLogic->getName().' : '.$result['data']);
 		//log::add('sonoffdiy', 'debug', '<< error recue de '.$eqLogic->getName().' : '.$result['error']);
 		if ($result['error']!="0") {
-			log::add('sonoffdiy', 'error', 'Souci sur la commande '.$this->getName().' de '.$eqLogic->getName().' error : '.$result['error']);
+			log::add('sonoffdiy', 'error', '║ ******** Souci sur la commande '.$this->getName().' de '.$eqLogic->getName().' Error N°'.$result['error'].' ********');
 			// Pour avoir les codes erreur : https://github.com/itead/Sonoff_Devices_DIY_Tools/blob/master/SONOFF%20DIY%20MODE%20Protocol%20Doc%20v1.4.md
 		}
 		
@@ -756,7 +773,7 @@ class sonoffdiyCmd extends cmd {
 	}
 		public function enregistreCmdInfo($_CmdInfo, $_Data, $_eqLogic) {
 			//log::add('sonoffdiy_mDNS', 'debug', 'debut  enregistreCmdInfo ');
-			log::add('sonoffdiy_mDNS', 'debug', '$_Data1 : '.$_Data);
+			log::add('sonoffdiy_mDNS', 'debug', '$_Data1 : '.json_encode($_Data));
 		
 			if (isset($_Data) && (array_key_exists($_CmdInfo,$_Data))) {
 				
@@ -767,7 +784,7 @@ class sonoffdiyCmd extends cmd {
 				if ($_Data[$_CmdInfo]!="") {
 					$valeur_enregistree=$_Data[$_CmdInfo];
 					//if ($_CmdInfo=='signalStrength') $_CmdInfo='rssi';
-					log::add('sonoffdiy', 'debug', 'Enregistrement de '.$_CmdInfo.' dans '.$_eqLogic->getName().' : '.$_Data[$_CmdInfo]);
+					log::add('sonoffdiy', 'debug', '╠═ Enregistrement de '.$_CmdInfo.' dans '.$_eqLogic->getName().' : '.$_Data[$_CmdInfo]);
 					//if ($valeur_enregistree=='on') $valeur_enregistree=1;	if ($valeur_enregistree=='off') $valeur_enregistree=0;
 					$_eqLogic->checkAndUpdateCmd($_CmdInfo, $valeur_enregistree);	
 				}
