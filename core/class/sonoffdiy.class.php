@@ -409,7 +409,7 @@ class sonoffdiy extends eqLogic {
 					$cmd->setName('Pulse On');
 					$cmd->setConfiguration('parameter', '5000');
 					$cmd->setConfiguration('request', 'pulse?command=on');
-					$cmd->setConfiguration('expliq', 'Active le mode Pulse (et fixe le nb de ms en paramètre)');
+					$cmd->setConfiguration('expliq', 'Active le mode Pulse et fixe la tempo en ms (multiple de 500ms)');
 					$cmd->setDisplay('title_disable', 1);
 					$cmd->setOrder(4);
 					//$cmd->setDisplay('icon', '<i class="fa jeedomapp-audiospeak"></i>');
@@ -652,6 +652,7 @@ class sonoffdiyCmd extends cmd {
 	//if ((isset($_options['select'])) && ($_options['select'] != '')) $valeur=$_options['select']; // Pour Etat Initial
 	//if ((isset($_options['message'])) && ($_options['message'] != '')) $parameter=$_options['message']; // pour Pulse ON
 	if (($command=="startup") && (isset($_options['select'])) && ($_options['select'] != '')) $valeur="stay";
+	if (($command=="pulse") && ($valeur=="off")) $parameter="123";
 	
 
 			$url = "http://".$adresse_ip.":8081/zeroconf/".$command; // Envoyer la commande Refresh via jeeAlexaapi
