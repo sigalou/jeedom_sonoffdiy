@@ -675,8 +675,8 @@ class sonoffdiyCmd extends cmd {
 		
 			if ($command=="pulse")	
 				
-		//log::add('sonoffdiy', 'info', ' >══>══>══>══>════════════[parameter: '.$parameter.'═════════════════════════════════════════════════════════');
-				if ($parameter>500) 
+				//if ($parameter>500)
+				if($parameter % 500 == 0)					
 					$data = array(
 						'deviceid'        => $device_id,
 						'data'    => array(
