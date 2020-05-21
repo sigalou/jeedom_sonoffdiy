@@ -716,7 +716,7 @@ class sonoffdiyCmd extends cmd {
 			return false;
 		}
 		log::add('sonoffdiy', 'info', ' ║ ════envoi══> '.$url." ".$payload);
-		log::add('sonoffdiy', 'info', ' ║ <══réponse═ '.json_encode($result));
+		log::add('sonoffdiy', 'info', ' ║ <══réponse═  '.json_encode($result));
 		//log::add('sonoffdiy', 'debug', '<< Data recues de '.$eqLogic->getName().' : '.$result['data']);
 		//log::add('sonoffdiy', 'debug', '<< error recue de '.$eqLogic->getName().' : '.$result['error']);
 		if ($result['error']!="0") {
