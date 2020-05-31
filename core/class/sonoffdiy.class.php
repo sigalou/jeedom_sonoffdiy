@@ -243,11 +243,12 @@ class sonoffdiy extends eqLogic {
 							if ($save) $eqLogic->save(); // à voir si on garde c'est que pour actualiser les infos du desktop
 						}
 						if (!$cestBonOnaTrouveleDevice) {
-						log::add('sonoffdiy_mDNS','warning',"**********************************************************************************************");
-						log::add('sonoffdiy_mDNS','warning',"**********************************************************************************************");
-						log::add('sonoffdiy_mDNS','warning',"* Il y a un souci dans l'ID d'un des devices, il devrait y avoir un device avec l'ID : ".$_ID);
-						log::add('sonoffdiy_mDNS','warning',"**********************************************************************************************");
-						log::add('sonoffdiy_mDNS','warning',"**********************************************************************************************");
+						log::add('sonoffdiy_mDNS', 'warning', " ╔══════════════════════[Il y a un souci dans l'ID d'un des devices]═════════════════════════════════════════════════════════");
+						log::add('sonoffdiy_mDNS', 'warning', " ║ Il devrait y avoir un device avec l'ID : ".$_ID);
+						log::add('sonoffdiy_mDNS', 'warning', ' ╚═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════');
+						log::add('sonoffdiy', 'warning', " ╔══════════════════════[Il y a un souci dans l'ID d'un des devices]═════════════════════════════════════════════════════════");
+						log::add('sonoffdiy', 'warning', " ║ Il devrait y avoir un device avec l'ID : ".$_ID);
+						log::add('sonoffdiy', 'warning', ' ╚═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════');
 						}
 							
 
