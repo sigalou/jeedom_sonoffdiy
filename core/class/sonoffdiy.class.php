@@ -428,7 +428,7 @@ class sonoffdiy extends eqLogic {
 					$cmd->setEqLogic_id($this->getId());
 					$cmd->setName('Etat initial');					
 					$cmd->setConfiguration('request', 'startup?state=#select#');
-					$cmd->setConfiguration('listValue', 'on|on; off|off; stay|stay');
+					$cmd->setConfiguration('listValue', 'on|on;off|off;stay|stay');
 					$cmd->setConfiguration('expliq', "Définir l'état à la mise sous tension");
 					$cmd->setDisplay('title_disable', 1);
 					$cmd->setOrder(6);
@@ -649,12 +649,19 @@ class sonoffdiyCmd extends cmd {
 	//log::add('sonoffdiy', 'info', '----variable:*'.$variable.'* valeur:'.$valeur);
 	//log::add('sonoffdiy', 'info', '----Command:*'.$command.'* arguments:'.$arguments);
 	//log::add('sonoffdiy', 'info', '----Options:*'.json_encode($_options));
+	//log::add('sonoffdiy', 'info', '----$_optionsselect:'.$_options['select']);
 	//log::add('sonoffdiy', 'info', '----parameter:*'.$parameter);
-	//if ((isset($_options['select'])) && ($_options['select'] != '')) $valeur=$_options['select']; // Pour Etat Initial
+	if ((isset($_options['select'])) && ($_options['select'] != '')) $valeur=$_options['select']; // Pour Etat Initial
+	//if ((isset($_options['select'])) && ($_options['select'] != '')) log::add('sonoffdiy', 'info', '*****************************************************************************');
 	//if ((isset($_options['message'])) && ($_options['message'] != '')) $parameter=$_options['message']; // pour Pulse ON
-	if (($command=="startup") && (isset($_options['select'])) && ($_options['select'] != '')) $valeur="stay";
+	if (($command=="startup") && (isset($_options['select'])) && ($_options['select'] != '') && ($valeur == '')) $valeur="stay";
 	if (($command=="pulse") && ($valeur=="off")) $parameter="123";
 	
+	// Rustine pour corriger l'erreur de $cmd->setConfiguration('listValue', 'on|on; off|off; stay|stay'); (espace en trop avant Off et Stay)
+	// Ajouté le 27/07/2020 pourra être supprimé dans quelques années
+	if ($valeur==" off") $valeur="off";
+	if ($valeur==" stay") $valeur="stay";
+
 
 			$url = "http://".$adresse_ip.":8081/zeroconf/".$command; // Envoyer la commande Refresh via jeeAlexaapi
 			$ch = curl_init($url);
