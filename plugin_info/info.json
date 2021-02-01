@@ -1,7 +1,7 @@
 {
 	"id" : "sonoffdiy",
 	"name" : "Sonoff DIY",
-	"description" : "Sonoff DIY",
+	"description" : "Commander vos équipements Sonoff-DIY sans aucun flashage du module et en restant sur votre réseau local (pas de connexion cloud obligatoire, fonctionne sans internet)",
 	"licence" : "AGPL",
 	"author" : "Sigalou",
 	"require" : "3.3.24",
