@@ -311,21 +311,21 @@ class sonoffdiy extends eqLogic {
 			$refresh->save();
 		}
 
-				$cmd = $this->getCmd(null, 'switch');
-				if (!is_object($cmd)) {
-					$cmd = new sonoffdiyCmd();
-					$cmd->setType('info');
-					$cmd->setLogicalId('switch');
-					$cmd->setSubType('binary');
-					$cmd->setEqLogic_id($this->getId());
-					$cmd->setName('Etat du relais');
-					//$cmd->setDisplay('title_disable', 1);
-					$cmd->setIsVisible(1);
-					$cmd->setOrder(1);
-					//$cmd->setDisplay('icon', '<i class="fa fa-volume-up"></i>');
-					//$cmd->setDisplay('forceReturnLineBefore', true);
+				$switch = $this->getCmd(null, 'switch');
+				if (!is_object($switch)) {
+					$switch = new sonoffdiyCmd();
+					$switch->setType('info');
+					$switch->setLogicalId('switch');
+					$switch->setSubType('binary');
+					$switch->setEqLogic_id($this->getId());
+					$switch->setName('Etat du relais');
+					//$switch->setDisplay('title_disable', 1);
+					$switch->setIsVisible(1);
+					$switch->setOrder(1);
+					//$switch->setDisplay('icon', '<i class="fa fa-volume-up"></i>');
+					//$switch->setDisplay('forceReturnLineBefore', true);
 				}
-				$cmd->save();
+				$switch->save();
 				
 				$cmd = $this->getCmd(null, 'Off');
 				if (!is_object($cmd)) {
@@ -340,6 +340,8 @@ class sonoffdiy extends eqLogic {
 					$cmd->setConfiguration('expliq', 'Eteindre');
 					$cmd->setDisplay('title_disable', 1);
 					$cmd->setOrder(3);
+					$cmd->setValue($switch->getId());
+
 					//$cmd->setDisplay('icon', '<i class="fa jeedomapp-audiospeak"></i>');
 					$cmd->setIsVisible(1);
 					$cmd->setDisplay('icon', '<i class="icon_red icon fas fa-times"></i>');
@@ -376,6 +378,8 @@ class sonoffdiy extends eqLogic {
 					$cmd->setConfiguration('expliq', 'Allumer');
 					$cmd->setDisplay('title_disable', 1);
 					$cmd->setOrder(2);
+					$cmd->setValue($switch->getId());
+
 					$cmd->setDisplay('icon', '<i class="icon_green icon fas fa-check"></i>');
 					$cmd->setIsVisible(1);
 				}
