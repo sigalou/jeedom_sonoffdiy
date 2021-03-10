@@ -63,13 +63,15 @@ function addCmdToTable(_cmd)
   if ((init(_cmd.logicalId) == 'Info') || (init(_cmd.logicalId) == 'signal_strength')) {
     $masqueCmdAction='style="display:none;"';
   }
-  
+
+
+ 
   if (init(_cmd.type) == 'info')
   {
     var tr =
        '<tr class="cmd" data-cmd_id="' + init(_cmd.id) + '">'
      +   '<td>'
-     +     '<span class="cmdAttr" data-l1key="id"></span>'
+     +     '<span class="cmdAttr" data-l1key="id" style="font-size: 10px;"></span>'
      +   '</td>'
      +   '<td>'
      +     '<div class="row">'
@@ -77,24 +79,27 @@ function addCmdToTable(_cmd)
  //    +         '<a class="cmdAction btn btn-default btn-sm" data-l1key="chooseIcon"><i class="fa fa-flag"></i> Icone</a>'
      +         '<span class="cmdAttr" data-l1key="display" data-l2key="icon" style="margin-left : 10px;"></span>'
      +       '</div>'
-     +   '<div class="col-lg-8">'
-     +     '<input class="cmdAttr form-control input-sm" data-l1key="name" placeholder="{{Nom du capteur}}"></td>'
+     +   '<div class="col-lg-12">'
+     +     '<input class="cmdAttr form-control input-sm" data-l1key="name" style="margin-bottom : 10px;"></td>'
      +   '<td>'
-//     +     '<span class="type" type="' + init(_cmd.type) + '">' + jeedom.cmd.availableType() + '</span>'
-     +     '<input class="cmdAttr form-control type input-sm" data-l1key="type" value="info" type="hidden" disabled style="margin-bottom : 5px;" />'
-     +     '<input class="cmdAttr form-control type input-sm" data-l1key="configuration" data-l2key="value" readonly style="margin-bottom : 5px;" />'
+	+     '<span style="margin-bottom : 5px;" class="subType" subType="' + init(_cmd.subType) + '"></span>'
+    +   '</td>'
+   +   '<td>'
+ //     +     '<span class="type" type="' + init(_cmd.type) + '">' + jeedom.cmd.availableType() + '</span>'
+     +     '<input class="cmdAttr form-control type input-sm" data-l1key="type" value="info" type="hidden" disabled  />'
+     +     '<input class="cmdAttr form-control type input-sm" data-l1key="configuration" data-l2key="value" readonly  />'
 //     +     '<input class="cmdAttr form-control type input-sm" data-l1key="value" disabled style="margin-bottom : 5px;" />'
-//     +     '<span class="subType" subType="' + init(_cmd.subType) + '"></span>'
-////     +   '</td>'
-//     +   '<td>'
+ //   +   '</td>'
+//    +   '<td>'     
+//    +   '</td>'
+ //   +   '<td>'
 //     +     '<small><span class="cmdAttr"  data-l1key="configuration" data-l2key="cmd"></span> Résultat de la commande <span class="cmdAttr"  data-l1key="configuration" data-l2key="taskname"></span> (<span class="cmdAttr"  data-l1key="configuration" data-l2key="taskid"></span>)</small>'
 
  //    +     '<span class="cmdAttr"  data-l1key="configuration" data-l2key="value"></span>'
    //  +   '</td>'
  //    +   '<td>'
   //   +     '<input class="cmdAttr form-control input-sm" data-l1key="unite" style="width : 90px;" placeholder="{{Unite}}">'
-    +   '</td>'
-    +   '<td>'
+
      +   '</td>'
      +   '<td>'
      +     '<span><label class="checkbox-inline"><input type="checkbox" class="cmdAttr checkbox-inline" data-l1key="isHistorized" checked/>{{Historiser}}</label></span> '
@@ -114,6 +119,11 @@ function addCmdToTable(_cmd)
 
     $('#table_cmd_infos tbody').append(tr);
     $('#table_cmd_infos tbody tr:last').setValues(_cmd, '.cmdAttr');
+    if (isset(_cmd.type)) {
+      $('#table_cmd_infos tbody tr:last .cmdAttr[data-l1key=type]').value(init(_cmd.type));
+    }
+    jeedom.cmd.changeType($('#table_cmd_infos tbody tr').last(), init(_cmd.subType));
+  
   }
 //-------------------------------------------------------------------------------------------------------------------------------
   if (init(_cmd.type) == 'action')
@@ -121,7 +131,7 @@ function addCmdToTable(_cmd)
 	var tr =
 	'<tr ' + $masqueCmdAction + ' class="cmd" data-cmd_id="' + init(_cmd.id) + '">'
 	+   '<td>'
-	+     '<span class="cmdAttr" data-l1key="id"></span>'
+	+     '<span class="cmdAttr" data-l1key="id" style="font-size: 10px;"></span>'
 	+   '</td>'
 	+   '<td>'
 	+     '<div class="row">'
@@ -136,12 +146,7 @@ function addCmdToTable(_cmd)
 	tr  +=   '</td>';
 
 
-	tr  +=   '<td>';
-	tr  +='<input class="cmdAttr form-control type input-sm" type="hidden" data-l1key="type" value="action" disabled />';
-	tr  +='<input class="cmdAttr form-control type input-sm" data-l1key="configuration" data-l2key="expliq" readonly />';
-	tr  +='<div '+DefinitionDivPourCommandesPredefinies+'>';
-	tr  +=     '<span class="subType" subType="' + init(_cmd.subType) + '"></span>';
-	tr  +=   '</div></td>';
+
 	tr  +=   '<td>'
 	+     '<input class="cmdAttr form-control input-sm"';
 	if (init(_cmd.logicalId)!="")
@@ -169,9 +174,15 @@ function addCmdToTable(_cmd)
 			//tr +=   '</td>';
 			//tr +=   '<td>';
 		}
-	  
-	tr +=   '</td>'
-     +   '<td>'
+		
+	tr +=   '</td>';
+	tr  +=   '<td>';
+	tr  +='<input class="cmdAttr form-control type input-sm" type="hidden" data-l1key="type" value="action" disabled />';
+	tr  +='<input class="cmdAttr form-control type input-sm" data-l1key="configuration" data-l2key="expliq" readonly />';
+	tr  +='<div '+DefinitionDivPourCommandesPredefinies+'>';
+	tr  +=     '<span class="subType" subType="' + init(_cmd.subType) + '"></span>';
+	tr  +=   '</div></td>';	  
+	tr +=   '<td>'
      +     '<span><label class="checkbox-inline"><input type="checkbox" class="cmdAttr checkbox-inline" data-l1key="isVisible" checked/>{{Afficher}}</label></span> '
      +   '</td>'
      + '<td>';

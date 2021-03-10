@@ -151,7 +151,10 @@ foreach (jeedom::getConfiguration('eqLogic:category') as $key => $value)
                   <div class="col-sm-8">
                     <input type="text" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="device_id" placeholder="{{xxxxxxxxxx}}"/>
                   </div>
-                </div>					
+                </div>	
+<div class="alert-info bg-success">
+	Mettre au minimum l'adresse IP de l'équipement.<br>Le plugin récupèrera l'ID à l'envoi de la première commande.
+</div>				
               </fieldset>
             </form>
           </div>
@@ -179,47 +182,47 @@ foreach (jeedom::getConfiguration('eqLogic:category') as $key => $value)
 								</div>
 								<div id="div_instruction"></div>
 								<div class="form-group">
-									<label class="col-sm-3 control-label">{{Création}}</label>
+									<label class="col-sm-3 control-label" style="font-size: 10px;">{{Création}}</label>
 									<div class="col-sm-3">
 										<span class="eqLogicAttr label label-default" data-l1key="configuration" data-l2key="createtime" title="{{Date de création de l'équipement}}" style="font-size : 1em;cursor : default;"></span>
 									</div>
-									<label class="col-sm-3 control-label">{{Communication}}</label>
+									<label class="col-sm-3 control-label" style="font-size: 10px;">{{Communication}}</label>
 									<div class="col-sm-3">
 										<span class="eqLogicAttr label label-default" data-l1key="status" data-l2key="lastCommunication" title="{{Date de dernière communication}}" style="font-size : 1em;cursor : default;"></span>
 									</div>
 								</div>
 								<div class="form-group">
-									<label class="col-sm-3 control-label ">{{SSID}}</label>
+									<label class="col-sm-3 control-label " style="font-size: 10px;">{{SSID}}</label>
 									<div class="col-sm-3 ">
 										<span class="eqLogicAttr label label-default" style="font-size : 1em;cursor : default;" data-l1key="configuration" data-l2key="ssid"></span>
 									</div>
-									<label class="col-sm-3 control-label ">{{RSSI}}</label>
+									<label class="col-sm-3 control-label " style="font-size: 10px;">{{RSSI}}</label>
 									<div class="col-sm-3 ">
 										<span class="eqLogicAttr label label-default" style="font-size : 1em;cursor : default;" data-l1key="configuration" data-l2key="rssi"></span>
 									</div>								
 									</div>
 								<div class="form-group">
-									<label class="col-sm-3 control-label ">{{Etat de la fonction Pulse}}</label>
+									<label class="col-sm-3 control-label" style="font-size: 10px;">{{Etat de la fonction Pulse}}</label>
 									<div class="col-sm-3 ">
 										<span class="eqLogicAttr label label-default" style="font-size : 1em;cursor : default;" data-l1key="configuration" data-l2key="pulse"></span>
 									</div>
-									<label class="col-sm-3 control-label ">{{Tempo de la fonction Pulse}}</label>
+									<label class="col-sm-3 control-label " style="font-size: 10px;">{{Tempo de la fonction Pulse}}</label>
 									<div class="col-sm-3 ">
 										<span class="eqLogicAttr label label-default" style="font-size : 1em;cursor : default;" data-l1key="configuration" data-l2key="pulseWidth"></span>
 									</div>								
 									</div>								
 								<div class="form-group">
-									<label class="col-sm-3 control-label ">{{Etat à la mise sous tension}}</label>
+									<label class="col-sm-3 control-label " style="font-size: 10px;">{{Etat à la mise sous tension}}</label>
 									<div class="col-sm-3 ">
 										<span class="eqLogicAttr label label-default" style="font-size : 1em;cursor : default;" data-l1key="configuration" data-l2key="startup"></span>
 									</div>
-									<label class="col-sm-3 control-label ">{{Dernière Mise à jour}}</label>
+									<label class="col-sm-3 control-label " style="font-size: 10px;">{{Dernière Mise à jour}}</label>
 									<div class="col-sm-3 ">
 										<span class="eqLogicAttr label label-default" style="font-size : 1em;cursor : default;" data-l1key="configuration" data-l2key="LastMAJ"></span>
 									</div>								
 									</div>	
 								<div class="form-group">
-									<label class="col-sm-3 control-label ">{{ID détectée}}</label>
+									<label class="col-sm-3 control-label " style="font-size: 10px;">{{ID détectée}}</label>
 									<div class="col-sm-3 ">
 										<span class="eqLogicAttr label label-default" style="font-size : 1em;cursor : default;" data-l1key="configuration" data-l2key="IDdetectee"></span>
 									</div>
@@ -243,11 +246,11 @@ foreach (jeedom::getConfiguration('eqLogic:category') as $key => $value)
 			  
 			  <th style="width: 40px;">#</th>
               <th style="width: 200px;">{{Nom de la commande}}</th>
-              <th style="width: 300px;">{{Action}}</th>
               <th style="width: 200px;">{{Commande}}</th>
-              <th style="width: 200px;">{{Paramètre}}</th>
+              <th style="width: 100px;">{{Paramètre}}</th>
+              <th style="width: 400px;">{{Action}}</th>
               <th style="width: 200px;">{{Options}}</th>
-              <th style="width: 100px;"></th>
+              <th style="width: 170px;"></th>
             </tr>
           </thead>
           <tbody>
@@ -258,14 +261,12 @@ foreach (jeedom::getConfiguration('eqLogic:category') as $key => $value)
         <table id="table_cmd_infos" class="table table-bordered table-condensed">
           <thead>
             <tr>
-
-			  
-			  <th style="width: 40px;">#</th>
-              <th style="width: 200px;">{{Nom de l'info}}</th>
-              <th style="width: 300px;">{{Valeur}}</th>
-              <th style="width: 400px;"></th>
+			  <th style="width: 70px;">#</th>
+              <th style="width: 280px;">{{Nom de l'info}}</th>
+              <th style="width: 130px;">Type d'info</th>
+              <th style="width: 450px;">{{Valeur}}</th>
               <th style="width: 200px;">{{Options}}</th>
-              <th style="width: 100px;"></th>
+              <th style="width: 170px;"></th>
             </tr>
           </thead>
           <tbody>
