@@ -256,7 +256,6 @@ class sonoffdiy extends eqLogic {
 							foreach ($_data_decoded as $LogicalId => $value){
 								//log::add('sonoffdiy','debug'," TTTTTTTTTTTTTdataTTTTTTTTTTTTTTTTEST : ".$LogicalId." = ".$value);
 								$cmd=$eqLogic->getCmd(null, $LogicalId);
-								log::add('sonoffdiy', 'info', 'Commande '.$cmd->getName());
 								if ($value===false) $value="0";
 								if ($value===true) $value="1";
 								if (!(is_object($cmd))) { //on regarde si la commande ayant le logicalId $LogicalId existe
@@ -272,6 +271,7 @@ class sonoffdiy extends eqLogic {
 								log::add('sonoffdiy','debug',"║ Ajout de la Commande info : ".$LogicalId);
 								}
 								$cmd->save();
+								//log::add('sonoffdiy', 'info', 'Commande '.$cmd->getName());
 								//$cmd->enregistreCmdInfo($LogicalId, $_data_decoded, $eqLogic); //enregistreCmdInfo($LogicalId, $_Data, $_eqLogic)
 								
 										log::add('sonoffdiy', 'debug', '╠═ Enregistrement de '.$LogicalId.' dans '.$eqLogic->getName().' : '.$value);
@@ -299,7 +299,7 @@ class sonoffdiy extends eqLogic {
 						log::add('sonoffdiy_mDNS', 'warning', "╔══════════════════════[Il y a un souci dans l'ID d'un des devices]═════════════════════════════════════════════════════════");
 						log::add('sonoffdiy_mDNS', 'warning', "║ Il devrait y avoir un device avec l'ID : ".$_ID." || Peut-être le device ayant l'IP ".$ip);
 						log::add('sonoffdiy', 'warning', "╔══════════════════════[Il y a un souci dans l'ID d'un des devices]═════════════════════════════════════════════════════════");
-						log::add('sonoffdiy', 'warning', "0║ Il devrait y avoir un device avec l'ID : ".$_ID." || Peut-être le device ayant l'IP ".$ip);
+						log::add('sonoffdiy', 'warning', "║ Il devrait y avoir un device avec l'ID : ".$_ID." || Peut-être le device ayant l'IP ".$ip);
 							foreach (eqLogic::byType('sonoffdiy') as $eqLogic){
 								if ($eqLogic->getConfiguration('device_id') != "") continue;
 								if ($eqLogic->getConfiguration('adresse_ip') == $ip) $eqLogic->setConfiguration('device_id', $_ID);
