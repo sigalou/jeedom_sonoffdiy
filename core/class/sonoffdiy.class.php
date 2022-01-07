@@ -85,7 +85,7 @@ class sonoffdiy extends eqLogic {
         // search for connected devices
 		$time=0;
 		log::add('sonoffdiy_mDNS', 'debug', 'Lancement du Daémon');
-		//log::add('sonoffdiy_mDNS','debug','Mémoire utilisée :'.round(memory_get_usage()/1000). " ko ".memory_get_usage()%1000 . " o ");
+		//log::add('sonoffdiy_mDNS','info','Mémoire utilisée :'.round(memory_get_usage()/1000). " ko ".memory_get_usage()%1000 . " o ");
 		//$memDep = round(memory_get_usage()/1000);
 		while(true) {
 
@@ -120,7 +120,7 @@ class sonoffdiy extends eqLogic {
 									for ($y = 0; $y < sizeof($inpacket->answerrrs[$x]->data); $y++) {
 										$name .= chr($inpacket->answerrrs[$x]->data[$y]);
 									}
-									//log::add('sonoffdiy_mDNS','debug',"  | Nom de l'émetteur :".$name);
+									//log::add('sonoffdiy_mDNS','info',"  | Nom de l'émetteur :".$name);
 								}
 							}
 							if ($inpacket->answerrrs[$x]->qtype == 16) {
@@ -194,20 +194,28 @@ class sonoffdiy extends eqLogic {
 						$last_IPetSEQ=$ip.".".$sequence_decoded['seq'];
 						$data_data_decoded=json_decode($data_data, true);
 						$data_data_decoded['IDdetectee']=$sequence_decoded['id'];
-						log::add('sonoffdiy_mDNS','debug',"  | séquence : ".$sequence);
-						//log::add('sonoffdiy_mDNS','debug',"  | données : ".$data_data);
-						log::add('sonoffdiy_mDNS','debug',"  | données : ".json_encode($data_data_decoded));
-						log::add('sonoffdiy_mDNS','debug',"  | ip : ".$ip);
+						//log::add('sonoffdiy_mDNS','info',"  | données : ".$data_data);
 						//log::add('sonoffdiy','debug',"  | ip : ".$ip);
-						log::add('sonoffdiy_mDNS','debug',"  | seq : ".$sequence_decoded['seq']);
-						log::add('sonoffdiy_mDNS','debug',"  | fwVersion : ".$data_data_decoded['fwVersion']);
-						log::add('sonoffdiy_mDNS','debug',"  | type : ".$sequence_decoded['type']);
-						log::add('sonoffdiy_mDNS','debug',"  | id : ".$sequence_decoded['id']);
+						log::add('sonoffdiy_mDNS', 'info', '═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════');
+				
+						log::add('sonoffdiy_mDNS','info',"  | séquence : ".$sequence);
+						log::add('sonoffdiy_mDNS','info',"  | données : ".json_encode($data_data_decoded));
+						log::add('sonoffdiy_mDNS','info',"  | ip : ".$ip);
+						log::add('sonoffdiy_mDNS','info',"  | seq : ".$sequence_decoded['seq']);
+						log::add('sonoffdiy_mDNS','info',"  | fwVersion : ".$data_data_decoded['fwVersion']);
+						log::add('sonoffdiy_mDNS','info',"  | type : ".$sequence_decoded['type']);
+						log::add('sonoffdiy_mDNS','info',"  | id : ".$sequence_decoded['id']);
 						
  						if ((isset($sequence_decoded['type'])) && ($sequence_decoded['type'] =="plug")) {
 						log::add('sonoffdiy_mDNS','warning',"**********************************************************************************************");
 						log::add('sonoffdiy_mDNS','warning',"**********************************************************************************************");
-						log::add('sonoffdiy_mDNS','warning',"* un device avec l'ID : ".$_ID." est bien détecté mais est en mode eWelink, donc non compatible LAN");
+						log::add('sonoffdiy_mDNS','warning',"* un device avec l'ID : ".$sequence_decoded['id']." est bien détecté mais est en mode eWelink, donc non compatible LAN");
+						log::add('sonoffdiy_mDNS','warning',"**********************************************************************************************");
+						log::add('sonoffdiy_mDNS','warning',"**********************************************************************************************");
+						} elseif ((isset($sequence_decoded['type'])) && ($sequence_decoded['type'] =="enhanced_plug")) {
+						log::add('sonoffdiy_mDNS','warning',"**********************************************************************************************");
+						log::add('sonoffdiy_mDNS','warning',"**********************************************************************************************");
+						log::add('sonoffdiy_mDNS','warning',"* un device avec l'ID : ".$sequence_decoded['id']." est bien détecté mais il n'est pas compatible DIY Mode");
 						log::add('sonoffdiy_mDNS','warning',"**********************************************************************************************");
 						log::add('sonoffdiy_mDNS','warning',"**********************************************************************************************");
 						} else {
@@ -220,7 +228,7 @@ class sonoffdiy extends eqLogic {
 							
 						}
 						//else
-						//log::add('sonoffdiy_mDNS','debug',"  | Trame non traitée identique à la précédente -> ignorée");
+						//log::add('sonoffdiy_mDNS','info',"  | Trame non traitée identique à la précédente -> ignorée");
 
 					}
 					else log::add('sonoffdiy_mDNS', 'debug', "Trame mDNS entrante depuis ".$inpacket->answerrrs[0]->name." -> ignorée");
@@ -286,12 +294,12 @@ class sonoffdiy extends eqLogic {
 							foreach ($eqLogic->getCmd('info') as $cmd) {
 							//log::add('sonoffdiy','debug'," **** Test de la commande : ".$cmd->getName()." (".$cmd->getLogicalId().")");
 							//log::add('sonoffdiy','debug'," **** --> ".$_data_decoded[$cmd->getLogicalId()]);
-							//log::add('sonoffdiy_mDNS','debug'," **** switch : ".$data_data_decoded['switch']);
-							//log::add('sonoffdiy_mDNS','debug'," **** getLogicalId : ".$cmd->getLogicalId());
-							//log::add('sonoffdiy_mDNS','debug'," **>>** _data_decoded : ".$data_data_decoded);
-							//log::add('sonoffdiy_mDNS','debug'," **>>** _data_decoded : ".$data_data_decoded);
+							//log::add('sonoffdiy_mDNS','info'," **** switch : ".$data_data_decoded['switch']);
+							//log::add('sonoffdiy_mDNS','info'," **** getLogicalId : ".$cmd->getLogicalId());
+							//log::add('sonoffdiy_mDNS','info'," **>>** _data_decoded : ".$data_data_decoded);
+							//log::add('sonoffdiy_mDNS','info'," **>>** _data_decoded : ".$data_data_decoded);
 							$cmd->enregistreCmdInfo($cmd->getLogicalId(), $_data_decoded, $eqLogic);
-							//log::add('sonoffdiy_mDNS','debug'," FINI**** getLogicalId : ".$cmd->getLogicalId());
+							//log::add('sonoffdiy_mDNS','info'," FINI**** getLogicalId : ".$cmd->getLogicalId());
 							}*/
 							if ($save) $eqLogic->save(); // à voir si on garde c'est que pour actualiser les infos du desktop
 						}
