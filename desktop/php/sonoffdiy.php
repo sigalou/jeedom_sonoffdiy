@@ -168,6 +168,7 @@ foreach (jeedom::getConfiguration('eqLogic:category') as $key => $value)
 										<option value="">Aucun</option>
 										<option value="mini">Sonoff DIY MINI</option>
 										<option value="miniR2">Sonoff DIY MINI R2</option>
+										<option value="miniR3">Sonoff DIY MINI R3</option>
 										<option value="basicR3">Sonoff DIY Basic R3</option>
 										<option value="RFR3">Sonoff DIY RF R3</option>
 										</select>
