@@ -26,10 +26,19 @@ class sonoffdiy extends eqLogic {
 	}
 	public static function cron() {
 		//log::add('sonoffdiy', 'debug', '!!************************** Start cron update sonoffdiy *******************************!!');
-		return;
+        $plugin = plugin::byId('sonoffdiy');
+        $eqLogics = eqLogic::byType($plugin->getId());
+            foreach ($eqLogics as $eqLogic) {
+                if ($eqLogic->getConfiguration('device')=="SPM") { // On n'actualise que les SPM
+                    //log::add('sonoffdiy', 'debug', 'Refresh automatique (CRON) de ' . $eqLogic->getName());
+					log::add('sonoffdiy','info', "╞══════════════════════[Refresh automatique (CRON) de ". $eqLogic->getName()."]═════════════════════════════════════════════════════════");
+                    $eqLogic->refresh();
+                }
+            }
+       	
 	}
 	public static function deamon_start($_debug = false) {
-		log::add('sonoffdiy', 'debug', 'deamon_start');
+		log::add('sonoffdiy','debug', "╞══════════════════════[Deamon Start]═════════════════════════════════════════════════════════");
 		self::deamon_stop();
 		$deamon_info = self::deamon_info();
 		if ($deamon_info['launchable'] != 'ok') {
@@ -43,7 +52,7 @@ class sonoffdiy extends eqLogic {
 	}
 
 	public static function deamon_stop() {
-		log::add('sonoffdiy', 'debug', 'deamon_stop');
+		log::add('sonoffdiy','debug', "╞══════════════════════[Deamon Stop ]═════════════════════════════════════════════════════════");
 		$cron = cron::byClassAndFunction('sonoffdiy', 'daemon');
 		if (!is_object($cron)) {
 			throw new Exception(__('Cron et Daemon introuvables - réinstaller le plugin', __FILE__));
@@ -104,7 +113,7 @@ class sonoffdiy extends eqLogic {
 					
 					
 					if ($inpacket->answerrrs[0]->name == "_ewelink._tcp.local") { 
-						log::add('sonoffdiy_mDNS','info', "**************** Une Trame _ewelink._tcp.local qui nous intéresse de ".$inpacket->answerrrs[0]->name);
+						log::add('sonoffdiy_mDNS','info', "**************** Une Trame mDNS qui nous intéresse de ".$inpacket->answerrrs[0]->name);
 						//log::add('sonoffdiy_mDNS','info', "Trame mDNS entrante ".json_encode($inpacket));
 						//log::add('sonoffdiy_mDNS','info', "Trame mDNS entrante depuis ".$inpacket->answerrrs[0]->name);
 						for ($x=0; $x < sizeof($inpacket->answerrrs); $x++) {
@@ -226,10 +235,26 @@ class sonoffdiy extends eqLogic {
 						//log::add('sonoffdiy_mDNS','info',"  | Trame non traitée identique à la précédente -> ignorée");
 
 					}
-					elseif ((substr($inpacket->answerrrs[0]->name, 0, 8) == "eWeLink_") &&(substr($inpacket->answerrrs[0]->name, -6) == ".local")) { 
-					
-					//Trame mDNS entrante {"packetheader":{},"questions":[],"answerrrs":[{"name":"eWeLink_1001439ed1.local","qtype":1,"qclass":32769,"ttl":1000,"data":[192,168,1,222]},{"name":"222.1.168.192.in-addr.arpa","qtype":12,"qclass":32769,"ttl":1000,"data":[101,87,101,76,105,110,107,95,49,48,48,49,52,51,57,101,100,49,46,108,111,99,97,108]},{"name":"_services._dns-sd._udp.local","qtype":12,"qclass":1,"ttl":1000,"data":[95,101,119,101,108,105,110,107,46,95,116,99,112,46,108,111,99,97,108]},{"name":"_ewelink._tcp.local","qtype":12,"qclass":1,"ttl":1000,"data":[101,87,101,76,105,110,107,95,49,48,48,49,52,51,57,101,100,49,46,95,101,119,101,108,105,110,107,46,95,116,99,112,46,108,111,99,97,108]},{"name":"eWeLink_1001439ed1._ewelink._tcp.local","qtype":33,"qclass":32769,"ttl":1000,"data":[0,0,0,0,31,145,192,12]},{"name":"eWeLink_1001439ed1._ewelink._tcp.local","qtype":16,"qclass":32769,"ttl":1000,"data":[9,116,120,116,118,101,114,115,61,49,13,105,100,61,49,48,48,49,52,51,57,101,100,49,13,116,121,112,101,61,100,105,121,95,112,108,117,103,9,97,112,105,118,101,114,115,61,49,5,115,101,113,61,56,253,100,97,116,97,49,61,123,34,99,111,110,102,105,103,117,114,101,34,58,91,123,34,115,116,97,114,116,117,112,34,58,34,111,102,102,34,44,34,111,117,116,108,101,116,34,58,48,125,44,123,34,115,116,97,114,116,117,112,34,58,34,111,102,102,34,44,34,111,117,116,108,101,116,34,58,49,125,44,123,34,115,116,97,114,116,117,112,34,58,34,111,102,102,34,44,34,111,117,116,108,101,116,34,58,50,125,44,123,34,115,116,97,114,116,117,112,34,58,34,111,102,102,34,44,34,111,117,116,108,101,116,34,58,51,125,93,44,34,112,117,108,115,101,115,34,58,91,123,34,112,117,108,115,101,34,58,34,111,102,102,34,44,34,115,119,105,116,99,104,34,58,34,111,110,34,44,34,111,117,116,108,101,116,34,58,48,44,34,119,105,100,116,104,34,58,48,125,44,123,34,112,117,108,115,101,34,58,34,111,102,102,34,44,34,115,119,105,116,99,104,34,58,34,111,110,34,44,34,111,117,116,108,101,116,34,58,49,44,34,119,105,100,116,104,34,58,48,125,44,123,34,112,117,253,100,97,116,97,50,61,108,115,101,34,58,34,111,102,102,34,44,34,115,119,105,116,99,104,34,58,34,111,110,34,44,34,111,117,116,108,101,116,34,58,50,44,34,119,105,100,116,104,34,58,48,125,44,123,34,112,117,108,115,101,34,58,34,111,102,102,34,44,34,115,119,105,116,99,104,34,58,34,111,110,34,44,34,111,117,116,108,101,116,34,58,51,44,34,119,105,100,116,104,34,58,48,125,93,44,34,115,108,101,100,79,110,108,105,110,101,34,58,34,111,110,34,44,34,102,119,86,101,114,115,105,111,110,34,58,34,49,46,52,46,48,34,44,34,115,119,105,116,99,104,101,115,34,58,91,123,34,115,119,105,116,99,104,34,58,34,111,110,34,44,34,111,117,116,108,101,116,34,58,48,125,44,123,34,115,119,105,116,99,104,34,58,34,111,102,102,34,44,34,111,117,116,108,101,116,34,58,49,125,44,123,34,115,119,105,116,99,104,34,58,34,111,102,102,34,44,34,111,117,116,108,101,116,34,58,50,125,44,123,34,115,119,105,116,99,104,34,58,34,111,102,102,34,20,100,97,116,97,51,61,44,34,111,117,116,108,101,116,34,58,51,125,93,125]}],"authorityrrs":[],"additionalrrs":[],"offset":791}
-					
+					elseif ((substr($inpacket->answerrrs[0]->name, 0, 8) == "eWeLink_") && (substr($inpacket->answerrrs[0]->name, -6) == ".local")) { 
+					/*ICI POUR LE SONOFF MINI R3
+
+[2022-01-19 13:43:06]INFO : ╔══════════════════════[ Une Trame eWeLink_ qui nous intéresse de eWeLink_1001439ed1.local]═════════════════════════════════════════════════════════
+[2022-01-19 13:43:06]INFO : ╠═══> séquence : {"txtvers":"1","id":"1001439ed1","type":"diy_plug","apivers":"1","seq":"12"}
+[2022-01-19 13:43:06]INFO : ╠═══> seq : 12
+[2022-01-19 13:43:06]INFO : ╠═══> type : diy_plug
+[2022-01-19 13:43:06]INFO : ╠═══> id : 1001439ed1
+[2022-01-19 13:43:06]INFO : ╠═══> données : {"configure":[{"startup":"off","outlet":0},{"startup":"off","outlet":1},{"startup":"off","outlet":2},{"startup":"off","outlet":3}],"pulses":[{"pulse":"off","switch":"on","outlet":0,"width":0},{"pulse":"off","switch":"on","outlet":1,"width":0},{"pulse":"off","switch":"on","outlet":2,"width":0},{"pulse":"off","switch":"on","outlet":3,"width":0}],"sledOnline":"on","fwVersion":"1.4.0","switches":[{"switch":"on","outlet":0},{"switch":"off","outlet":1},{"switch":"off","outlet":2},{"switch":"off","outlet":3}],"IDdetectee":"1001439ed1"}
+[2022-01-19 13:43:06]INFO : ╠═══> ip : 192.168.1.222
+[2022-01-19 13:43:06]INFO : ╠═══> fwVersion : 1.4.0
+[2022-01-19 13:43:06]INFO : ╠═ Enregistrement dans MiniR3  de startup : off
+[2022-01-19 13:43:06]INFO : ╠═ Enregistrement dans MiniR3  de pulse : off
+[2022-01-19 13:43:06]INFO : ╠═ Enregistrement dans MiniR3  de pulseWidth : 0
+[2022-01-19 13:43:06]INFO : ╠═ Enregistrement dans MiniR3  de sledOnline : on
+[2022-01-19 13:43:06]INFO : ╠═ Enregistrement dans MiniR3  de fwVersion : 1.4.0
+[2022-01-19 13:43:06]INFO : ╠═ Enregistrement dans MiniR3  de switch : on
+[2022-01-19 13:43:06]INFO : ╠═ Enregistrement dans MiniR3  de IDdetectee : 1001439ed1
+[2022-01-19 13:43:06]INFO : ╚═══════════════════════════════════════════════════════════════════════════════════════════════════════*/
+
 					
 						//log::add('sonoffdiy_mDNS','info', "╔══════════════════════[ Une Trame eWeLink_ qui nous intéresse de ".$inpacket->answerrrs[0]->name."]═════════════════════════════════════════════════════════");
 						//log::add('sonoffdiy_mDNS','info', "=============== Trame mDNS entrante ".json_encode($inpacket));
@@ -276,11 +301,12 @@ class sonoffdiy extends eqLogic {
 								$key = substr($str,0,$pos);
 								$val = substr($str,$pos+1);
 								$sequence.='"'.$key.'":"'.$val.'"';
-								//log::add('sonoffdiy_mDNS','info',"================ ajout dans SEQUENCE : ".$sequence); //vaut toujours {"txtvers":"1"
+								log::add('sonoffdiy_mDNS','info',"================ ajout dans SEQUENCE : ".$sequence); //vaut toujours {"txtvers":"1"
 								$offset = $offset + $size+1;
 								$data_data="";
 								while ($data[$offset]<> 0  && sizeof($data)) {
 									$size = $data[$offset];
+								//log::add('sonoffdiy_mDNS','info',"=========================================== $size : ".$size); 
 									$str="";
 									for ($ls=1; $ls <= $size; $ls++) { 
 										$caractere=$data[$offset+$ls];
@@ -291,11 +317,13 @@ class sonoffdiy extends eqLogic {
 									$val = substr($str,$pos+1);
 									//log::add('sonoffdiy_mDNS','info',"================ trouvé clé : ".$key.'":"'.$val.'"--'.substr($key,0,4)); 
 									if (substr($key,0,4)!='data') 	$sequence.=',"'.$key.'":"'.$val.'"';  	// si on a une clé/valeur
-									else 				$data_data=$data_data.$val;						//si c'est la partie des data
+									else $data_data=$data_data.$val;						//si c'est la partie des data
 									$offset = $offset + $size+1;
 								} 
 								$sequence.="}";
-								//log::add('sonoffdiy_mDNS','info',"================ DATA	 : ".$data_data);
+							//	log::add('sonoffdiy_mDNS','info',"================ DATA	 : ".$data_data);
+								
+								
 								//log::add('sonoffdiy_mDNS','info',"================ fin de SEQUENCE : ".$sequence);
 								/*
 								if ($inpacket->answerrrs[$x]->name == "_ewelink._tcp.local") {
@@ -374,7 +402,208 @@ class sonoffdiy extends eqLogic {
 						//else
 						//log::add('sonoffdiy_mDNS','info',"  | Trame non traitée identique à la précédente -> ignorée");
 
-					}					
+					}
+					elseif ($inpacket->answerrrs[0]->name == "_services._dns-sd._udp.local") { 
+					//ICI POUR LE SONOFF SPM
+	
+					
+						//log::add('sonoffdiy_mDNS','info', "╔══════════════════════[ Une Trame SONOFF SPM de ".$inpacket->answerrrs[0]->name."]═════════════════════════════════════════════════════════");
+						//log::add('sonoffdiy_mDNS','info', "=============== Trame mDNS entrante ".json_encode($inpacket));
+						//log::add('sonoffdiy_mDNS','info', "Trame mDNS entrante depuis ".$inpacket->answerrrs[0]->name);
+						for ($x=0; $x < sizeof($inpacket->answerrrs); $x++) {
+						//log::add('sonoffdiy_mDNS','info', "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+							//log::add('sonoffdiy_mDNS','info', "   x:$x  qtype:".$inpacket->answerrrs[$x]->qtype);
+							if ($inpacket->answerrrs[$x]->qtype == 12) {
+								$str="";
+								for($i=0;$i<sizeof($inpacket->answerrrs[$x]->data);$i++) {
+									$caractere=$inpacket->answerrrs[$x]->data[$i];
+									if ($caractere>31 && $caractere<127 && $caractere!= 34  && $caractere!= 39 && $caractere!= 92 && $caractere!=96) $str.=chr($caractere);
+								}
+									//log::add('sonoffdiy_mDNS','info'," str1 :".$str."--!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!---".json_encode($inpacket->answerrrs[$x]));
+								
+								if ($inpacket->answerrrs[$x]->name == "_ewelink._tcp.local") {
+									$name = "";
+									for ($y = 0; $y < sizeof($inpacket->answerrrs[$x]->data); $y++) {
+										$name .= chr($inpacket->answerrrs[$x]->data[$y]);
+									}
+									//log::add('sonoffdiy_mDNS','info',"  | Nom de l'émetteur :".$name);
+								}
+							}
+							
+							
+							
+							
+							if ($inpacket->answerrrs[$x]->qtype == 16) {
+								
+								
+							// Paquet de données
+								$str="";
+								//log::add('sonoffdiy_mDNS','info',"==On boucle de 0 à ".sizeof($inpacket->answerrrs[$x]->data));
+								//log::add('sonoffdiy_mDNS','info',"==chaine de départ : ".json_encode(json_encode($inpacket->answerrrs[$x]->data)));
+								
+								for($i=0;$i<sizeof($inpacket->answerrrs[$x]->data);$i++) {
+									$caractere=$inpacket->answerrrs[$x]->data[$i];
+									if ($caractere>31 && $caractere<127 && $caractere!= 34  && $caractere!= 39 && $caractere!= 92 && $caractere!=96) $str.=chr($caractere);
+								}
+								$data = $caractere=$inpacket->answerrrs[$x]->data; // c'est la liste de donnéées encodée [48,100,97,116,97,49,61,123,34,115,119,105,116,99,104,101,115,34,58,91,123,34,115,119,105,116,99,104,34,58,34,111,102,102,34,44,34,111,117,116,108,101,116,34,58,48,125,93,125,6,115,101,113,61,52,56,9,97,112,105,118,101,114,115,61,49,14,116,121,112,101,61,100,105,121,95,109,101,116,101,114,27,105,100,61,98,54,52,56,52,54,52,101,51,54,51,53,51,54,49,51,51,53,51,54,51,50,51,56,9,116,120,116,118,101,114,115,61,49]"
+								
+								
+								//log::add('sonoffdiy_mDNS','info',"==data ".json_encode(json_encode($data)));
+								
+								
+								//log::add('sonoffdiy_mDNS','info',"================ Création de SEQUENCE");
+								$sequence="{";
+								$offset = 0;
+								$size = $data[$offset];
+								$str="";
+								for ($ls=1; $ls <= $size; $ls++) { 
+								  $caractere=$data[$offset+$ls];
+								  if ($caractere>31 && $caractere<127) $str.=chr($data[$offset+$ls]); 
+								 // if ($caractere>31 && $caractere<127 && $caractere!= 34  && $caractere!= 39 && $caractere!= 92 && $caractere!=96) $str.=chr($data[$offset+$ls]); 
+								}
+								//log::add('sonoffdiy_mDNS','info',"================ str : ".$str); // c'est la chaine décodée issue de data : data1={switches:[{switch:off,outlet:0}]}
+								
+								//$str="";
+								$pos = strpos ( $str , '=');
+								$key = substr($str,0,$pos);
+								$val = substr($str,$pos+1);
+								//$sequence.='"'.$key.'":"'.$val.'"';
+								$sequence.='"1":"1"';
+								$data_data="";
+								
+								
+								
+									if (substr($key,0,4)!='data') 	$sequence.=',"'.$key.'":"'.$val.'"';  			// si on a une clé/valeur
+									else 							$data_data=$data_data.$val;						//si c'est la partie des data
+
+							
+								//$data_data={"configure":[{"startup":"off","outlet":0},{"startup":"off","outlet":1},{"startup":"off","outlet":2},{"startup":"off","outlet":3}],"pulses":[{"pulse":"off","switch":"on","outlet":0,"width":0},{"pulse":"off","switch":"on","outlet":1,"width":0},{"pulse":"off","switch":"on","outlet":2,"width":0},{"pulse":"off","switch":"on","outlet":3,"width":0}],"sledOnline":"on","fwVersion":"1.4.0","switches":[{"switch":"off","outlet":0},{"switch":"off","outlet":1},{"switch":"off","outlet":2},{"switch":"off","outlet":3}]}
+
+								//DATA	 : {"data1":"{switches:[{switch:on,outlet:0}]}"
+								
+								//{switches:[{switch:off,outlet:0}]}
+								
+								
+								
+								
+								//log::add('sonoffdiy_mDNS','info',"================ ajout dans SEQUENCE : ".$sequence); //vaut toujours {"txtvers":"1"
+								$offset = $offset + $size+1;
+								while ($data[$offset]<> 0  && sizeof($data)) {
+								//log::add('sonoffdiy_mDNS','info',"======[$offset]<> 0========================== : ".$offset); 
+								//log::add('sonoffdiy_mDNS','info',"======sizeof($data)========================== : ".sizeof($data)); 
+									$size = $data[$offset];
+								//log::add('sonoffdiy_mDNS','info',"=========================================== $size : ".$size); 
+									$str="";
+									for ($ls=1; $ls <= $size; $ls++) { 
+										$caractere=$data[$offset+$ls];
+										if ($caractere>31 && $caractere<127 && $caractere!= 39 && $caractere!= 92 && $caractere!=96) $str.=chr($data[$offset+$ls]); 
+									}
+								//log::add('sonoffdiy_mDNS','info',"================ str2 : ".$str); // c'est la chaine décodée issue de data : data1={switches:[{switch:off,outlet:0}]}
+									
+									$pos = strpos ( $str , '=');
+									$key = substr($str,0,$pos);
+									$val = substr($str,$pos+1);
+									//log::add('sonoffdiy_mDNS','info',"================ trouvé clé : ".$key.'":"'.$val); 
+									if (substr($key,0,4)!='data') 	$sequence.=',"'.$key.'":"'.$val.'"';  	// si on a une clé/valeur
+									else $data_data=$data_data.$val;						//si c'est la partie des data
+
+									
+									
+									
+
+									
+									$offset = $offset + $size+1;
+								} 
+								$sequence.="}";
+
+								//log::add('sonoffdiy_mDNS','info',"================ fin de SEQUENCE : ".$sequence);
+								/*
+								if ($inpacket->answerrrs[$x]->name == "_ewelink._tcp.local") {
+									$name = "";
+									for ($y = 0; $y < sizeof($inpacket->answerrrs[$x]->data); $y++) {
+										$name .= chr($inpacket->answerrrs[$x]->data[$y]);
+									}
+								}*/
+							}/*
+							if ($inpacket->answerrrs[$x]->qtype == 33) {
+								$d = $inpacket->answerrrs[$x]->data;
+								$portm = ($d[4] * 256) + $d[5];
+								$offset = 6;
+								$size = $d[$offset];
+								$offset++;
+								$target = "";
+								for ($z=0; $z < $size; $z++) {
+									$target .= chr($d[$offset + $z]);
+								}
+								$target .= ".local";
+							}*/
+							if ($inpacket->answerrrs[$x]->qtype == 1) {
+								$d = $inpacket->answerrrs[$x]->data;
+								$ip = $d[0] . "." . $d[1] . "." . $d[2] . "." . $d[3];
+							}
+						}
+
+
+						//séquence : {"txtvers":"1","id":"1001439ed1","type":"diy_plug","apivers":"1","seq":"24","data2":"lse":"off","switch":"on","outlet":2,"width":0},{"pulse":"off","switch":"on","outlet":3,"width":0}],"sledOnline":"on","fwVersion":"1.4.0","switches":[{"switch":"on","outlet":0},{"switch":"off","outlet":1},{"switch":"off","outlet":2},{"switch":"off"","data3":","outlet":3}]}"}
+
+						//				{"txtvers":"1","id":"1001439ed1","type":"diy_plug","apivers":"1","seq":"49"}
+						//$sequence = 	{"txtvers":"1","id":"1000ab1e93","type":"diy_plug","apivers":"1","seq":"66"}
+						//$data_data= {"switch":"on","startup":"on","pulse":"off","sledOnline":"on","pulseWidth":5000,"rssi":-77}
+						
+						// DATA {
+						//"configure":[{"startup":"off","outlet":0},{"startup":"off","outlet":1},{"startup":"off","outlet":2},{"startup":"off","outlet":3}],
+						//"pulses":[{"pulse":"off","switch":"on","outlet":0,"width":0},{"pulse":"off","switch":"on","outlet":1,"width":0},{"pulse":"off","switch":"on","outlet":2,"width":0},{"pulse":"off","switch":"on","outlet":3,"width":0}],
+						//"sledOnline":"on","fwVersion":"1.4.0",
+						//"switches":[{"switch":"off","outlet":0},{"switch":"off","outlet":1},{"switch":"off","outlet":2},{"switch":"off","outlet":3}]}
+
+						$sequence_decoded=json_decode($sequence, true);
+						$IPetSEQ=$ip.".".$sequence_decoded['seq'];
+						if ($IPetSEQ!=$last_IPetSEQ) // les sequences sont répétées, pour éviter de les relancer
+						{
+						//log::add('sonoffdiy_mDNS','info', "╠══════════════════════[ Une Trame eWeLink_ qui nous intéresse de ".$inpacket->answerrrs[0]->name."]═════════════════════════════════════════════════════════");
+						log::add('sonoffdiy_mDNS','info', "╔══════════════════════[ Une Trame SONOFF SPM de ".$inpacket->answerrrs[0]->name."]═════════════════════════════════════════════════════════");
+						$last_IPetSEQ=$IPetSEQ;
+						
+						
+						
+								//log::add('sonoffdiy_mDNS','info',"================ DATA	 : ".$data_data);
+
+								//$data_data_decoded=$data_data;
+								$data_data_decoded=json_decode($data_data, true);
+						$data_data_decoded['IDdetectee']=$sequence_decoded['id'];
+								//log::add('sonoffdiy_mDNS','info',"================ DATA	 : ".$data_data);						
+								//log::add('sonoffdiy_mDNS','info',"================ data_data_decoded	 : ".$data_data_decoded);						
+						//log::add('sonoffdiy_mDNS','info',"  | données : ".$data_data);
+						//log::add('sonoffdiy','debug',"  | ip : ".$ip);
+						//log::add('sonoffdiy_mDNS', 'info', $last_IPetSEQ.'═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════');
+						log::add('sonoffdiy', 'info', "╔══════════════════════[Réception info du device id:".$sequence_decoded['id']."]═════════════════════════════════════════════════════════");
+				
+						log::add('sonoffdiy_mDNS','info',"╠═══> séquence : ".$sequence);
+						log::add('sonoffdiy_mDNS','info',"╠═══> seq : ".$sequence_decoded['seq']);
+						log::add('sonoffdiy_mDNS','info',"╠═══> type : ".$sequence_decoded['type']);
+						log::add('sonoffdiy_mDNS','info',"╠═══> id : ".$sequence_decoded['id']);
+						
+ 						if ((isset($sequence_decoded['type'])) && ($sequence_decoded['type'] =="plug")) {
+							log::add('sonoffdiy_mDNS','warning',"**********************************************************************************************");
+							log::add('sonoffdiy_mDNS','warning',"**********************************************************************************************");
+							log::add('sonoffdiy_mDNS','warning',"* un device avec l'ID : ".$sequence_decoded['id']." est bien détecté mais est en mode eWelink, donc non compatible LAN");
+							log::add('sonoffdiy_mDNS','warning',"**********************************************************************************************");
+							log::add('sonoffdiy_mDNS','warning',"**********************************************************************************************");
+						} elseif ((isset($sequence_decoded['type'])) && ($sequence_decoded['type'] =="enhanced_plug")) {
+							log::add('sonoffdiy_mDNS','warning',"**********************************************************************************************");
+							log::add('sonoffdiy_mDNS','warning',"**********************************************************************************************");
+							log::add('sonoffdiy_mDNS','warning',"* un device avec l'ID : ".$sequence_decoded['id']." est bien détecté mais il n'est pas compatible DIY Mode");
+							log::add('sonoffdiy_mDNS','warning',"**********************************************************************************************");
+							log::add('sonoffdiy_mDNS','warning',"**********************************************************************************************");
+						} else {
+							self::sauvegardeCmdsInfo($data_data_decoded, true, $sequence_decoded['id'],$ip); // ok fonctionne
+						}
+						log::add('sonoffdiy_mDNS', 'info', '╚═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════');
+						}
+						//else
+						//log::add('sonoffdiy_mDNS','info',"  | Trame non traitée identique à la précédente -> ignorée");
+
+					}		
 					else log::add('sonoffdiy_mDNS','info', "Trame mDNS entrante depuis ".$inpacket->answerrrs[0]->name." -> ignorée");
 
 				}
@@ -390,17 +619,59 @@ class sonoffdiy extends eqLogic {
 	public function sauvegardeCmdsInfoBis($LogicalId, $value, $eqLogic) {
 		
 									$cmd=$eqLogic->getCmd(null, $LogicalId);
+									$SubType="string";
+									$Unite="";
+									$Visible="0";
+									$Template="default";
 									if ($value===false) $value="0";
 									if ($value===true) $value="1";
+									
+									
+									
+									
+									
+									switch (substr($LogicalId, 0, 6)) {
+										case "actPow":
+											$Visible="1";
+											$Template="badge";
+											$Unite="W";
+											$SubType="numeric";
+											$value=intval($value)/100;
+											break;										
+										case "appare":
+											$Unite="VA";
+											$SubType="numeric";
+											$value=intval($value)/100;
+											break;										
+										case "curren":
+											$Unite="A";
+											$SubType="numeric";
+											$value=intval($value)/100;
+											break;										
+										case "reactP":
+											$Unite="VAR";
+											$SubType="numeric";
+											$value=intval($value)/100;
+											break;										
+										case "voltag":
+											$Unite="V";
+											$Template="badge";
+											$Visible="1";
+											$SubType="numeric";
+											$value=intval($value)/100;
+											break;
+									}
 										if (!(is_object($cmd))) { //on regarde si la commande ayant le logicalId $LogicalId existe
 										// n'existe pas	
 										$cmd = new sonoffdiyCmd();
 										$cmd->setType('info');
 										$cmd->setLogicalId($LogicalId);
-										$cmd->setSubType('string');
+										$cmd->setSubType($SubType);
+										$cmd->setUnite($Unite);
 										$cmd->setEqLogic_id($eqLogic->getId());
 										$cmd->setName($LogicalId);
-										$cmd->setIsVisible(0);
+										$cmd->setIsVisible($Visible);
+										$cmd->setTemplate('dashboard', $Template);
 										$cmd->setOrder(80);
 										log::add('sonoffdiy','debug',"║ Ajout de la Commande info : ".$LogicalId);
 										}
@@ -412,10 +683,10 @@ class sonoffdiy extends eqLogic {
 		
 	
 	public function sauvegardeCmdsInfo($_data_decoded, $save, $_ID, $ip) {
-		//log::add('sonoffdiy','debug'," **** Lancement sauvegardeCmdsInfo");
-		//log::add('sonoffdiy', 'debug', 'data:01:: '.$_data_decoded);
-		//log::add('sonoffdiy', 'debug', 'data:02:: '.json_encode($_data_decoded));
-		//log::add('sonoffdiy', 'debug', 'data:03:: '.json_decode($_data_decoded, true));
+		//log::add('sonoffdiy_mDNS','info'," **** Lancement sauvegardeCmdsInfo");
+		//log::add('sonoffdiy_mDNS', 'info', 'data:01:: '.$_data_decoded);
+		//log::add('sonoffdiy_mDNS', 'info', 'data:02:: '.json_encode($_data_decoded));
+		//log::add('sonoffdiy_mDNS', 'info', 'data:03:: '.json_decode($_data_decoded, true));
 		
 		// ici à reprendre pour créer les commandes automatiquement avec _data_decoded au lieu de boucler autour des commandes existantes
 
@@ -435,7 +706,7 @@ class sonoffdiy extends eqLogic {
 						$cestBonOnaTrouveleDevice=false;
 						foreach (eqLogic::byType('sonoffdiy') as $eqLogic){
 							//log::add('sonoffdiy_mDNS','info'," ***on test si ".$eqLogic->getConfiguration('device_id')." = ".$_ID);
-							if (!($eqLogic->getConfiguration('device_id') == $_ID)) continue;
+							if ((!($eqLogic->getConfiguration('device_id') == $_ID)) && (!($eqLogic->getConfiguration('esclave_id') == $_ID)) && ($_ID!='')) continue;
 							
 							//log::add('sonoffdiy_mDNS','info'," ***ok trouvé ".$_ID);
 							$cestBonOnaTrouveleDevice=true;
@@ -444,7 +715,24 @@ class sonoffdiy extends eqLogic {
 								if ((is_array($value)) && ($LogicalId=='switches')) {
 									if (is_array($_data_decoded['switches'])) {
 										foreach ($_data_decoded['switches'] as $switches){
-											if ($switches['outlet']=="0") self::sauvegardeCmdsInfoBis("switch", $switches['switch'], $eqLogic);// on part du principe à ce stade (MiniR3) qu'il n'y a qu'une chaine, la chaine 0 les 3 autres sont ignorés, à voir pour les prochains devices
+											if ($switches['outlet']=="0") self::sauvegardeCmdsInfoBis("switch", $switches['switch'], $eqLogic);// Pour MiniR3 et SPM
+											if ($switches['outlet']=="1") self::sauvegardeCmdsInfoBis("switch1", $switches['switch'], $eqLogic);// Pour SPM
+											if ($switches['outlet']=="2") self::sauvegardeCmdsInfoBis("switch2", $switches['switch'], $eqLogic);// Pour SPM
+											if ($switches['outlet']=="3") self::sauvegardeCmdsInfoBis("switch3", $switches['switch'], $eqLogic);// Pour SPM
+										}
+									}
+								} 
+								elseif ((is_array($value)) && ($LogicalId=='subDevList')) {
+									if (is_array($_data_decoded['subDevList'])) {
+										foreach ($_data_decoded['subDevList'] as $subDevList){
+											self::sauvegardeCmdsInfoBis("subDevId", $subDevList['subDevId'], $eqLogic);// on part du principe à ce stade qu'il n'y a qu'un esclave sur le SPM, faudra voir si quelqu'un en a plus qu'un
+											$subDevId=$subDevList['subDevId'];
+											if (($subDevId!='') && ($eqLogic->getConfiguration('esclave_id')!=$subDevId)) {
+												// ICI on va enregistrer automatiquement dans CONFIGURATION l'info ESCLAVE ID
+												log::add('sonoffdiy_mDNS', 'info', "╠═══> L'information subDevId n'était pas présente dans la config de ".$eqLogic->getName(). " : ".$subDevId." a été ajoutée.");
+												$eqLogic->setConfiguration('esclave_id', $subDevId);
+												$eqLogic->save();
+											}
 										}
 									}
 								} 
@@ -454,7 +742,7 @@ class sonoffdiy extends eqLogic {
 											if ($configure['outlet']=="0") self::sauvegardeCmdsInfoBis("startup", $configure['startup'], $eqLogic);// on part du principe à ce stade (MiniR3) qu'il n'y a qu'une chaine, la chaine 0 les 3 autres sont ignorés, à voir pour les prochains devices
 										}
 									}
-								} 
+								} 								
 								elseif ((is_array($value)) && ($LogicalId=='pulses')) {
 									if (is_array($_data_decoded['pulses'])) {
 										foreach ($_data_decoded['pulses'] as $pulses){
@@ -492,9 +780,11 @@ class sonoffdiy extends eqLogic {
 						log::add('sonoffdiy', 'warning', "║ Il devrait y avoir un device avec l'ID : ".$_ID." || Peut-être le device ayant l'IP ".$ip);
 							foreach (eqLogic::byType('sonoffdiy') as $eqLogic){
 								if ($eqLogic->getConfiguration('device_id') != "") continue;
-								if ($eqLogic->getConfiguration('adresse_ip') == $ip) $eqLogic->setConfiguration('device_id', $_ID);
-								log::add('sonoffdiy_mDNS', 'warning', "║ Device avec l'IP ".$ip ." et sans Id trouvé, ID ".$_ID."  ajoutée");
-								$eqLogic->save();
+								if (($eqLogic->getConfiguration('adresse_ip') == $ip) && ($eqLogic->getConfiguration('device')!="SPM")) {
+									$eqLogic->setConfiguration('device_id', $_ID);
+									log::add('sonoffdiy_mDNS', 'warning', "║ Device avec l'IP ".$ip ." et sans Id trouvé, ID ".$_ID."  ajoutée");
+									$eqLogic->save();
+								}
 							}						
 						log::add('sonoffdiy', 'warning', '╚═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════');
 						log::add('sonoffdiy_mDNS', 'warning', '╚═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════');
@@ -540,29 +830,8 @@ class sonoffdiy extends eqLogic {
 				
 				
 		$premierSAVE = false;
+		$compteurOrderCmd=1;
 		$createRefreshCmd = true;
-		$refresh = $this->getCmd(null, 'refresh');
-		if (!is_object($refresh)) {
-			$refresh = cmd::byEqLogicIdCmdName($this->getId(), __('Rafraichir', __FILE__));
-			if (is_object($refresh)) {
-				$createRefreshCmd = false;
-			}
-		}
-		if ($createRefreshCmd) {
-			if (!is_object($refresh)) {
-				$refresh = new sonoffdiyCmd();
-				$refresh->setLogicalId('refresh');
-				$refresh->setIsVisible(1);
-				$refresh->setName(__('Rafraichir', __FILE__));
-			}
-			$refresh->setType('action');
-			$refresh->setSubType('other');
-			$refresh->setEqLogic_id($this->getId());
-			$refresh->setOrder(10);
-			$refresh->setConfiguration('expliq', 'Rafraîchit manuellement toutes les données du device');
-			$refresh->save();
-		}
-
 
 		if ($this->getConfiguration('device')=="miniR3") $R3=true; else $R3=false;
 
@@ -576,78 +845,196 @@ class sonoffdiy extends eqLogic {
 					$switch->setSubType('binary');
 					$switch->setEqLogic_id($this->getId());
 					$switch->setName('Etat du relais');
+					if ($this->getConfiguration('device')=="SPM")	$switch->setName('Etat du relais 0');
 					//$switch->setDisplay('title_disable', 1);
 					$switch->setIsVisible(1);
-					$switch->setOrder(1);
+					$switch->setOrder($compteurOrderCmd); $compteurOrderCmd++;
 					//$switch->setDisplay('icon', '<i class="fa fa-volume-up"></i>');
 					//$switch->setDisplay('forceReturnLineBefore', true);
+					$switch->save();
 				}
-				$switch->save();
 				
-				$cmd = $this->getCmd(null, 'Off');
-				if (!is_object($cmd)) {
-					$premierSAVE = true;
-					$cmd = new sonoffdiyCmd();
-					$cmd->setType('action');
-					$cmd->setLogicalId('Off');
-					$cmd->setSubType('other');
-					$cmd->setEqLogic_id($this->getId());
-					$cmd->setName('Off');
-					if ($R3)
-						$cmd->setConfiguration('request', 'switches?command=off');
-					else
-						$cmd->setConfiguration('request', 'switch?command=off');
-					$cmd->setConfiguration('expliq', 'Eteindre');
-					$cmd->setDisplay('title_disable', 1);
-					$cmd->setOrder(3);
-					$cmd->setValue($switch->getId());
+				if ($this->getConfiguration('device')=="SPM")	{
+					// UNIQUEMENT LES COMMANDES SPM
+					$R3=true;
+					for ($ligne=1; $ligne<4; $ligne++) {
+						$switch = $this->getCmd(null, 'switch'.$ligne);
+						if (!is_object($switch)) {
+							$switch = new sonoffdiyCmd();
+							$switch->setType('info');
+							$switch->setLogicalId('switch'.$ligne);
+							$switch->setSubType('binary');
+							$switch->setEqLogic_id($this->getId());
+							$switch->setName('Etat du relais '.$ligne);
+							//$switch->setDisplay('title_disable', 1);
+							$switch->setIsVisible(1);
+							$switch->setOrder($compteurOrderCmd); $compteurOrderCmd++;
+							//$switch->setDisplay('icon', '<i class="fa fa-volume-up"></i>');
+							//$switch->setDisplay('forceReturnLineBefore', true);
+							$switch->save();			
+						}
+					}
+					for ($ligne=0; $ligne<4; $ligne++) {
+						$cmd = $this->getCmd(null, 'On'.$ligne);
+						if (!is_object($cmd)) {
+							$premierSAVE = true;
+							$cmd = new sonoffdiyCmd();
+							$cmd->setType('action');
+							$cmd->setLogicalId('On'.$ligne);
+							$cmd->setSubType('other');
+							$cmd->setEqLogic_id($this->getId());
+							$cmd->setName('On '.$ligne);
+							$cmd->setConfiguration('request', 'switches?command=on&outlet='.$ligne);
+							$cmd->setConfiguration('expliq', 'Allumer');
+							$cmd->setDisplay('title_disable', 1);
+							$cmd->setOrder($compteurOrderCmd); $compteurOrderCmd++;
+							$cmd->setValue($switch->getId());
+							$cmd->setDisplay('icon', '<i class="icon_green icon fas fa-check"></i>');
+							$cmd->setIsVisible(1);
+							$cmd->save();
+						}				
+						$cmd = $this->getCmd(null, 'Off'.$ligne);
+						if (!is_object($cmd)) {
+							$premierSAVE = true;
+							$cmd = new sonoffdiyCmd();
+							$cmd->setType('action');
+							$cmd->setLogicalId('Off'.$ligne);
+							$cmd->setSubType('other');
+							$cmd->setEqLogic_id($this->getId());
+							$cmd->setName('Off '.$ligne);
+							$cmd->setConfiguration('request', 'switches?command=off&outlet='.$ligne);
+							$cmd->setConfiguration('expliq', 'Eteindre');
+							$cmd->setDisplay('title_disable', 1);
+							$cmd->setOrder($compteurOrderCmd); $compteurOrderCmd++;
+							$cmd->setValue($switch->getId());
+							//$cmd->setDisplay('icon', '<i class="fa jeedomapp-audiospeak"></i>');
+							$cmd->setIsVisible(1);
+							$cmd->setDisplay('icon', '<i class="icon_red icon fas fa-times"></i>');
+							$cmd->save();
+						}
+					}
+					$cmd = $this->getCmd(null, 'subDevList');
+					if (!is_object($cmd)) {
+						$cmd = new sonoffdiyCmd();
+						$cmd->setType('action');
+						$cmd->setLogicalId('subDevList');
+						$cmd->setSubType('other');
+						$cmd->setEqLogic_id($this->getId());
+						$cmd->setName('subDevList');
+						$cmd->setConfiguration('request', 'subDevList');
+						$cmd->setDisplay('title_disable', 1);
+						$cmd->setConfiguration('RunWhenRefresh', 1);				
+						//$cmd->setDisplay('icon', '<i class="fa jeedomapp-audiospeak"></i>');
+						$cmd->setIsVisible(0);
+						$cmd->save();
+					}
+					$cmd = $this->getCmd(null, 'getState');
+					if (!is_object($cmd)) {
+						$cmd = new sonoffdiyCmd();
+						$cmd->setType('action');
+						$cmd->setLogicalId('getState');
+						$cmd->setSubType('other');
+						$cmd->setEqLogic_id($this->getId());
+						$cmd->setName('getState');
+						$cmd->setConfiguration('request', 'getState');
+						$cmd->setDisplay('title_disable', 1);
+						$cmd->setConfiguration('RunWhenRefresh', 1);				
+						//$cmd->setDisplay('icon', '<i class="fa jeedomapp-audiospeak"></i>');
+						$cmd->setIsVisible(0);
+						$cmd->save();
+					}				
+					$cmd = $this->getCmd(null, 'monitor');
+					if (!is_object($cmd)) {
+						$cmd = new sonoffdiyCmd();
+						$cmd->setType('action');
+						$cmd->setLogicalId('monitor');
+						$cmd->setSubType('other');
+						$cmd->setEqLogic_id($this->getId());
+						$cmd->setName('Lancer Temps réel');
+						$cmd->setConfiguration('request', 'monitor');
+						$cmd->setDisplay('title_disable', 1);
+						$cmd->setConfiguration('RunWhenRefresh', 1);				
+						//$cmd->setDisplay('icon', '<i class="fa jeedomapp-audiospeak"></i>');
+						$cmd->setIsVisible(0);
+						$cmd->save();
+					}					
+				} else {
+					//UNIQUEMENT LES NON SPM
+						$cmd = $this->getCmd(null, 'Info');
+						if (!is_object($cmd)) {
+							$cmd = new sonoffdiyCmd();
+							$cmd->setType('action');
+							$cmd->setLogicalId('Info');
+							$cmd->setSubType('other');
+							$cmd->setEqLogic_id($this->getId());
+							$cmd->setName('Info');
+							$cmd->setConfiguration('request', 'info');
+							$cmd->setDisplay('title_disable', 1);
+							$cmd->setConfiguration('RunWhenRefresh', 1);				
+							//$cmd->setDisplay('icon', '<i class="fa jeedomapp-audiospeak"></i>');
+							$cmd->setIsVisible(0);
+							$cmd->save();		
+						}
+						$cmd = $this->getCmd(null, 'signal_strength');
+						if (!is_object($cmd)) {
+							$cmd = new sonoffdiyCmd();
+							$cmd->setType('action');
+							$cmd->setLogicalId('signal_strength');
+							$cmd->setSubType('message');
+							$cmd->setEqLogic_id($this->getId());
+							$cmd->setName('Signal Action');
+							$cmd->setConfiguration('request', 'signal_strength');
+							$cmd->setConfiguration('expliq', 'Détecte la force du signal Wifi');
+							$cmd->setConfiguration('RunWhenRefresh', 1);				
+							//$cmd->setConfiguration('infoName', $signalinfo->getId());
+							$cmd->setIsVisible(0);
+							$cmd->save();						
+						}
+						$cmd = $this->getCmd(null, 'On');
+						if (!is_object($cmd)) {
+							$premierSAVE = true;
+							$cmd = new sonoffdiyCmd();
+							$cmd->setType('action');
+							$cmd->setLogicalId('On');
+							$cmd->setSubType('other');
+							$cmd->setEqLogic_id($this->getId());
+							$cmd->setName('On');
+							if ($R3)
+								$cmd->setConfiguration('request', 'switches?command=on&outlet=0');
+							else
+								$cmd->setConfiguration('request', 'switch?command=on');
+							$cmd->setConfiguration('expliq', 'Allumer');
+							$cmd->setDisplay('title_disable', 1);
+							$cmd->setOrder($compteurOrderCmd); $compteurOrderCmd++;
+							$cmd->setValue($switch->getId());
+							$cmd->setDisplay('icon', '<i class="icon_green icon fas fa-check"></i>');
+							$cmd->setIsVisible(1);
+							$cmd->save();
+						}				
+						$cmd = $this->getCmd(null, 'Off');
+						if (!is_object($cmd)) {
+							$premierSAVE = true;
+							$cmd = new sonoffdiyCmd();
+							$cmd->setType('action');
+							$cmd->setLogicalId('Off');
+							$cmd->setSubType('other');
+							$cmd->setEqLogic_id($this->getId());
+							$cmd->setName('Off');
+							if ($R3)
+								$cmd->setConfiguration('request', 'switches?command=off&outlet=0');
+							else
+								$cmd->setConfiguration('request', 'switch?command=off');
+							$cmd->setConfiguration('expliq', 'Eteindre');
+							$cmd->setDisplay('title_disable', 1);
+							$cmd->setOrder($compteurOrderCmd); $compteurOrderCmd++;
+							$cmd->setValue($switch->getId());
+							//$cmd->setDisplay('icon', '<i class="fa jeedomapp-audiospeak"></i>');
+							$cmd->setIsVisible(1);
+							$cmd->setDisplay('icon', '<i class="icon_red icon fas fa-times"></i>');
+							$cmd->save();
+						}				
+					}
 
-					//$cmd->setDisplay('icon', '<i class="fa jeedomapp-audiospeak"></i>');
-					$cmd->setIsVisible(1);
-					$cmd->setDisplay('icon', '<i class="icon_red icon fas fa-times"></i>');
-					
-				}
-				$cmd->save();
-				
-				$cmd = $this->getCmd(null, 'Info');
-				if (!is_object($cmd)) {
-					$cmd = new sonoffdiyCmd();
-					$cmd->setType('action');
-					$cmd->setLogicalId('Info');
-					$cmd->setSubType('other');
-					$cmd->setEqLogic_id($this->getId());
-					$cmd->setName('Info');
-					$cmd->setConfiguration('request', 'info');
-					$cmd->setDisplay('title_disable', 1);
-					$cmd->setConfiguration('RunWhenRefresh', 1);				
-					//$cmd->setDisplay('icon', '<i class="fa jeedomapp-audiospeak"></i>');
-					$cmd->setIsVisible(0);
-				}
-				$cmd->save();
-				
-				
-				$cmd = $this->getCmd(null, 'On');
-				if (!is_object($cmd)) {
-					$premierSAVE = true;
-					$cmd = new sonoffdiyCmd();
-					$cmd->setType('action');
-					$cmd->setLogicalId('On');
-					$cmd->setSubType('other');
-					$cmd->setEqLogic_id($this->getId());
-					$cmd->setName('On');
-					if ($R3)
-						$cmd->setConfiguration('request', 'switches?command=on');
-					else
-						$cmd->setConfiguration('request', 'switch?command=on');
-					$cmd->setConfiguration('expliq', 'Allumer');
-					$cmd->setDisplay('title_disable', 1);
-					$cmd->setOrder(2);
-					$cmd->setValue($switch->getId());
-
-					$cmd->setDisplay('icon', '<i class="icon_green icon fas fa-check"></i>');
-					$cmd->setIsVisible(1);
-				}
-				$cmd->save();
 				
 				if (!$R3) {
 					$cmd = $this->getCmd(null, 'PulseOff');
@@ -662,11 +1049,11 @@ class sonoffdiy extends eqLogic {
 						$cmd->setConfiguration('request', 'pulse?command=off');
 						$cmd->setConfiguration('expliq', 'Désactive le mode Pulse');
 						$cmd->setDisplay('title_disable', 1);
-						$cmd->setOrder(5);
+						$cmd->setOrder($compteurOrderCmd); $compteurOrderCmd++;
 						//$cmd->setDisplay('icon', '<i class="fa jeedomapp-audiospeak"></i>');
 						$cmd->setIsVisible(0);
+						$cmd->save();
 					}
-					$cmd->save();
 
 					
 					$cmd = $this->getCmd(null, 'PulseOn');
@@ -681,12 +1068,11 @@ class sonoffdiy extends eqLogic {
 						$cmd->setConfiguration('request', 'pulse?command=on');
 						$cmd->setConfiguration('expliq', 'Active le mode Pulse et fixe la tempo en ms (multiple de 500ms)');
 						$cmd->setDisplay('title_disable', 1);
-						$cmd->setOrder(4);
+						$cmd->setOrder($compteurOrderCmd); $compteurOrderCmd++;
 						//$cmd->setDisplay('icon', '<i class="fa jeedomapp-audiospeak"></i>');
 						$cmd->setIsVisible(0);
-
+						$cmd->save();
 					}
-					$cmd->save();
 					
 					$cmd = $this->getCmd(null, 'startup_action'); // 
 					if (!is_object($cmd)) {
@@ -700,12 +1086,11 @@ class sonoffdiy extends eqLogic {
 						$cmd->setConfiguration('listValue', 'on|on;off|off;stay|stay');
 						$cmd->setConfiguration('expliq', "Définir l'état à la mise sous tension");
 						$cmd->setDisplay('title_disable', 1);
-						$cmd->setOrder(6);
+						$cmd->setOrder($compteurOrderCmd); $compteurOrderCmd++;
 						//$cmd->setDisplay('icon', '<i class="fa jeedomapp-audiospeak"></i>');
 						$cmd->setIsVisible(0);
+						$cmd->save();
 					}
-					$cmd->save();
-					
 				
 					$cmd = $this->getCmd(null, 'startup');
 					if (!is_object($cmd)) {
@@ -716,11 +1101,11 @@ class sonoffdiy extends eqLogic {
 						$cmd->setEqLogic_id($this->getId());
 						$cmd->setName('Etat à la mise sous tension');
 						$cmd->setIsVisible(0);
-						$cmd->setOrder(2);
+						$cmd->setOrder($compteurOrderCmd); $compteurOrderCmd++;
 						//$cmd->setDisplay('icon', '<i class="fa fa-volume-up"></i>');
 						//$cmd->setDisplay('forceReturnLineBefore', true);
+						$cmd->save();
 					}
-					$cmd->save();
 
 					
 					$cmd = $this->getCmd(null, 'pulse');
@@ -732,11 +1117,11 @@ class sonoffdiy extends eqLogic {
 						$cmd->setEqLogic_id($this->getId());
 						$cmd->setName('Etat de la fonction Pulse');
 						$cmd->setIsVisible(0);
-						$cmd->setOrder(3);
+						$cmd->setOrder($compteurOrderCmd); $compteurOrderCmd++;
 						//$cmd->setDisplay('icon', '<i class="fa fa-volume-up"></i>');
 						//$cmd->setDisplay('forceReturnLineBefore', true);
+						$cmd->save();
 					}
-					$cmd->save();
 					
 					
 					$cmd = $this->getCmd(null, 'pulseWidth');
@@ -748,11 +1133,11 @@ class sonoffdiy extends eqLogic {
 						$cmd->setEqLogic_id($this->getId());
 						$cmd->setName('Tempo de la fonction Pulse');
 						$cmd->setIsVisible(0);
-						$cmd->setOrder(4);
+						$cmd->setOrder($compteurOrderCmd); $compteurOrderCmd++;
 						//$cmd->setDisplay('icon', '<i class="fa fa-volume-up"></i>');
 						//$cmd->setDisplay('forceReturnLineBefore', true);
+						$cmd->save();
 					}
-					$cmd->save();
 					
 					$cmd = $this->getCmd(null, 'ssid');
 					if (!is_object($cmd)) {
@@ -763,13 +1148,12 @@ class sonoffdiy extends eqLogic {
 						$cmd->setEqLogic_id($this->getId());
 						$cmd->setName('SSID');
 						$cmd->setIsVisible(0);
-						$cmd->setOrder(5);
+						$cmd->setOrder($compteurOrderCmd); $compteurOrderCmd++;
 						//$cmd->setDisplay('icon', '<i class="fa fa-volume-up"></i>');
 						//$cmd->setDisplay('forceReturnLineBefore', true);
+						$cmd->save();				
 					}
-					$cmd->save();				
 				}
-				
 								
 				$cmd = $this->getCmd(null, 'rssi');
 				if (!is_object($cmd)) {
@@ -780,11 +1164,11 @@ class sonoffdiy extends eqLogic {
 					$cmd->setEqLogic_id($this->getId());
 					$cmd->setName('RSSI');
 					$cmd->setIsVisible(0);
-					$cmd->setOrder(6);
+					$cmd->setOrder($compteurOrderCmd); $compteurOrderCmd++;
 					//$cmd->setDisplay('icon', '<i class="fa fa-volume-up"></i>');
 					//$cmd->setDisplay('forceReturnLineBefore', true);
+					$cmd->save();
 				}
-				$cmd->save();
 				
 				$cmd = $this->getCmd(null, 'IDdetectee');
 				if (!is_object($cmd)) {
@@ -794,28 +1178,15 @@ class sonoffdiy extends eqLogic {
 					$cmd->setSubType('string');
 					$cmd->setEqLogic_id($this->getId());
 					$cmd->setName('ID');
+					if ($this->getConfiguration('device')=="SPM")	$cmd->setName('ID Esclave');
 					$cmd->setIsVisible(0);
-					$cmd->setOrder(7);
+					$cmd->setOrder($compteurOrderCmd); $compteurOrderCmd++;
 					//$cmd->setDisplay('icon', '<i class="fa fa-volume-up"></i>');
 					//$cmd->setDisplay('forceReturnLineBefore', true);
+					$cmd->save();	
 				}
-				$cmd->save();	
 				
-				$cmd = $this->getCmd(null, 'signal_strength');
-				if (!is_object($cmd)) {
-					$cmd = new sonoffdiyCmd();
-					$cmd->setType('action');
-					$cmd->setLogicalId('signal_strength');
-					$cmd->setSubType('message');
-					$cmd->setEqLogic_id($this->getId());
-					$cmd->setName('Signal Action');
-					$cmd->setConfiguration('request', 'signal_strength');
-					$cmd->setConfiguration('expliq', 'Détecte la force du signal Wifi');
-					$cmd->setConfiguration('RunWhenRefresh', 1);				
-					//$cmd->setConfiguration('infoName', $signalinfo->getId());
-					$cmd->setIsVisible(0);
-				}
-				$cmd->save();	
+	
 				
 				/* ne fonctionne pas avec Mini R3
 				$cmd = $this->getCmd(null, 'getState');
@@ -854,7 +1225,27 @@ class sonoffdiy extends eqLogic {
 
 
 	//	log::add('alexaamazonmusic', 'info', ' ╚══════════════════════════════════════════════════════════════════════════════════════════════════════════');
-
+			$refresh = $this->getCmd(null, 'refresh');
+			if (!is_object($refresh)) {
+				$refresh = cmd::byEqLogicIdCmdName($this->getId(), __('Rafraichir', __FILE__));
+				if (is_object($refresh)) {
+					$createRefreshCmd = false;
+				}
+			}
+			if ($createRefreshCmd) {
+				if (!is_object($refresh)) {
+					$refresh = new sonoffdiyCmd();
+					$refresh->setLogicalId('refresh');
+					$refresh->setIsVisible(1);
+					$refresh->setName(__('Rafraichir', __FILE__));
+				}
+				$refresh->setType('action');
+				$refresh->setSubType('other');
+				$refresh->setEqLogic_id($this->getId());
+				$refresh->setOrder(10);
+				$refresh->setConfiguration('expliq', 'Rafraîchit manuellement toutes les données du device');
+				$refresh->save();
+			}
 		}
 	}
 	
@@ -928,10 +1319,15 @@ class sonoffdiyCmd extends cmd {
 		$adresse_ip = $this->getEqLogic()->getConfiguration('adresse_ip');
 		//log::add('sonoffdiy', 'debug', '----adresse_ip:'.$adresse_ip);
 		$device_id = $this->getEqLogic()->getConfiguration('device_id');
+		$esclave_id = $this->getEqLogic()->getConfiguration('esclave_id');
+		if ($esclave_id=='') $esclave_id="123456";
 		//log::add('sonoffdiy', 'debug', '----device_id:'.$device_id);
 	if ($this->getType() != 'action') return $this->getConfiguration('request');
 	list($command, $arguments) = explode('?', $this->getConfiguration('request'), 2);
-	list($variable, $valeur) = explode('=', $arguments, 2);
+	list($argument1, $argument2) = explode('&', $arguments, 2);
+	list($variable, $valeur) = explode('=', $argument1, 2);
+	list($variable2, $outlet) = explode('=', $argument2, 2);
+	$outlet=str_replace('"', '', $outlet);
 	$parameter=(int)$this->getConfiguration('parameter');
 	//log::add('sonoffdiy', 'info', '----variable:*'.$variable.'* valeur:'.$valeur);
 	//log::add('sonoffdiy', 'info', '----Command:*'.$command.'* arguments:'.$arguments);
@@ -958,13 +1354,13 @@ class sonoffdiyCmd extends cmd {
 				$switches=[
 					[
 						"switch" => $valeur,
-						"outlet" => 0
+						"outlet" => intval($outlet)
 					]
-				];			
+				];	
 				$data = array(
 				'deviceid'        => $device_id,
 				'data'    => array(
-					'subDevId'      => "123456",
+					'subDevId'      => $esclave_id,
 					'switches'    => $switches
 					
 					),
@@ -976,7 +1372,7 @@ class sonoffdiyCmd extends cmd {
 				$data = array(
 				'deviceid'        => $device_id,
 				'data'    => array(
-					'subDevId'      => "123456"
+					'subDevId'      => $esclave_id
 										
 				),
 			);	
@@ -987,7 +1383,20 @@ class sonoffdiyCmd extends cmd {
 				'data'    => array(
 					'switch'      => $valeur
 				),
-			);	
+			);
+			
+			if ($command=="monitor")			
+			$data = array(
+				'deviceid'        => $device_id,
+				'data'    => array(
+					'url'      => "http://192.168.1.21",
+					'port'      => 5353,
+					'subDevId'      => $esclave_id,
+					'subDevId'      => $esclave_id,
+					'outlet'      => 0,
+					'time'      => 180
+				),
+			);		
 			
 			if ($command=="startup")			
 			$data = array(
@@ -1017,7 +1426,7 @@ class sonoffdiyCmd extends cmd {
 					);
 					
 			$vide = (object)[];
-			if (($command=="signal_strength") || ($command=="info") || ($command=="getState")	)		
+			if (($command=="signal_strength") || ($command=="subDevList") || ($command=="getState") || ($command=="info") || ($command=="getState")	)		
 			$data = array(
 				'deviceid'        => $device_id,
 				'data'    => $vide,

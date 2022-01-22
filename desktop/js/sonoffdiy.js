@@ -36,6 +36,9 @@ $(document).ready(function() {
       $('#img_device').attr("src", 'plugins/sonoffdiy/core/config/devices/'+$(this).value()+'.png');
     else
       $('#img_device').attr("src",'plugins/sonoffdiy/plugin_info/sonoffdiy_icon.png');
+  
+  //alert ("coucou")
+  
   });
   
 $Model = $('.eqLogicAttr[data-l1key=configuration][data-l2key=device]').value();
@@ -60,7 +63,7 @@ function addCmdToTable(_cmd)
 					DefinitionDivPourCommandesPredefinies="";
 //  if ((init(_cmd.logicalId) == 'whennextreminder') || (init(_cmd.logicalId) == '00whennextalarm') || (init(_cmd.logicalId) == 'whennextreminderlabel') || (init(_cmd.logicalId) == 'musicalalarmmusicentity') || (init(_cmd.logicalId) == 'whennextmusicalalarm')) {
 	$masqueCmdAction="";							
-  if ((init(_cmd.logicalId) == 'Info') || (init(_cmd.logicalId) == 'signal_strength')) {
+  if ((init(_cmd.logicalId) == 'Info') || (init(_cmd.logicalId) == 'signal_strength') || (init(_cmd.logicalId) == 'monitor') || (init(_cmd.logicalId) == 'getState') || (init(_cmd.logicalId) == 'subDevList')) {
     $masqueCmdAction='style="display:none;"';
   }
 
