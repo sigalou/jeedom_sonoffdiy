@@ -1421,7 +1421,7 @@ class sonoffdiyCmd extends cmd {
 					'port'      => 5353,
 					'subDevId'      => $esclave_id,
 					'outlet'      => intval($outlet),
-					'time'      => 70
+					'time'      => 70 //j'ai mis 70 car le cron est toutes les 60s à tester...
 				),
 			);		
 			
@@ -1461,7 +1461,7 @@ class sonoffdiyCmd extends cmd {
 					);
 					
 			$vide = (object)[];
-			if (($command=="signal_strength") || ($command=="subDevList") || ($command=="getState") || ($command=="info") || ($command=="getState")	)		
+			if (($command=="signal_strength") || ($command=="subDevList") || ($command=="info") || ($command=="getState")	)		
 			$data = array(
 				'deviceid'        => $device_id,
 				'data'    => $vide,
