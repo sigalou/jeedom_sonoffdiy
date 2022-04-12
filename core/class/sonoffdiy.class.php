@@ -613,6 +613,14 @@ class sonoffdiy extends eqLogic {
 			//log::add('sonoffdiy_mDNS','info', date('h:i:s'));
 			usleep(200000);
 			//log::add('sonoffdiy_mDNS','info', date('h:i:s'));
+			
+			[$CompteurMoniteur, $dernierMicrotime] = self::LanceMonitor($CompteurMoniteur, 4,5,$dernierMicrotime); //4 est le max de moniteurs de conso - 5 est la tempo entre deux moniteurs
+			
+			//log::add('sonoffdiy','info', "╞══════════════════════[Refresh automatique (CRON) de ". $eqLogic->getName()."]═════════════════════════════════════════════════════════");
+
+			
+			
+			
 		}
 	}		
 	
@@ -793,7 +801,30 @@ class sonoffdiy extends eqLogic {
 
 	}	
 	
-	
+	public function LanceMonitor($indice,$max, $tempo, $derniertime) {
+						if ((time() - $derniertime)>$tempo) {
+							$indice=$indice+1;
+							if ($indice>=$max) $indice=0;							
+							foreach (eqLogic::byType('sonoffdiy') as $eqLogic){
+								if ($eqLogic->getConfiguration('device')=="SPM" && ($eqLogic->getIsEnable())) {
+									log::add('sonoffdiy_mDNS','info', "***********************[Lancement monitor".$indice."-".$eqLogic->getName()."]**************************************************");
+									$cmd = $eqLogic->getCmd(null, "monitor".$indice);
+									if (is_object($cmd)) $cmd->execute();
+									
+								}
+							
+							
+								//if ($save) $eqLogic->save(); // à voir si on garde c'est que pour actualiser les infos du desktop
+							}
+						$derniertime = time();
+						}
+//log::add('sonoffdiy_Conso','info', "envoyé derniertime :".$derniertime);
+						
+								
+return [$indice, $derniertime];							
+
+	}	
+
 	
 	public function stopDaemon() {
 		log::add('sonoffdiy', 'debug', 'stopDaemon');
@@ -816,6 +847,8 @@ class sonoffdiy extends eqLogic {
 					}
 					//log::add('sonoffdiy', 'info', 'OUI pour '.$cmd->getName());
 					$value = $cmd->execute();
+					
+					
 				}
 			}
 			catch(Exception $exc) {log::add('sonoffdiy', 'error', __('Erreur pour ', __FILE__) . $this->getHumanName() . ' : ' . $exc->getMessage());}
@@ -857,6 +890,14 @@ class sonoffdiy extends eqLogic {
 				if ($this->getConfiguration('device')=="SPM")	{
 					// UNIQUEMENT LES COMMANDES SPM
 					
+					/*$cmd = $this->getCmd(null, "monitor0"); // A utiliser pour réinitialiser les monitorx (pour le dev)
+						if (is_object($cmd)) $cmd->remove();
+					$cmd = $this->getCmd(null, "monitor1");
+						if (is_object($cmd)) $cmd->remove();
+					$cmd = $this->getCmd(null, "monitor2");
+						if (is_object($cmd)) $cmd->remove();
+					$cmd = $this->getCmd(null, "monitor3");
+						if (is_object($cmd)) $cmd->remove();*/
 					//---- Securité pour supprimer la commande monitor qui est devenue monitor0 monitor1 monitor2... pourra etre supprimée en 2023
 					$cmd = $this->getCmd(null, "monitor");
 						if (is_object($cmd)) $cmd->remove();
@@ -931,7 +972,7 @@ class sonoffdiy extends eqLogic {
 							$cmd->setConfiguration('request', 'monitor?outlet='.$ligne);
 							$cmd->setDisplay('title_disable', 1);
 							$cmd->setOrder($compteurOrderCmd); $compteurOrderCmd++;
-							$cmd->setConfiguration('RunWhenRefresh', 1);				
+							$cmd->setConfiguration('RunWhenRefresh', 0);				
 							//$cmd->setDisplay('icon', '<i class="fa jeedomapp-audiospeak"></i>');
 							$cmd->setIsVisible(0);
 							$cmd->save();
@@ -967,7 +1008,21 @@ class sonoffdiy extends eqLogic {
 						$cmd->setIsVisible(0);
 						$cmd->save();
 					}				
-					
+					$cmd = $this->getCmd(null, 'getStateEsclave');
+					if (!is_object($cmd)) {
+						$cmd = new sonoffdiyCmd();
+						$cmd->setType('action');
+						$cmd->setLogicalId('getStateEsclave');
+						$cmd->setSubType('other');
+						$cmd->setEqLogic_id($this->getId());
+						$cmd->setName('getStateEsclave');
+						$cmd->setConfiguration('request', 'getState?getStateEsclave=getStateEsclave'); // pour récupérer getStateEsclave  dans value au moment de l'envoi de la commande
+						$cmd->setDisplay('title_disable', 1);
+						$cmd->setConfiguration('RunWhenRefresh', 1);				
+						//$cmd->setDisplay('icon', '<i class="fa jeedomapp-audiospeak"></i>');
+						$cmd->setIsVisible(0);
+						$cmd->save();
+					}						
 					// Commande qui permet de repasser en mode eWelink, désactivée car trop dangereuse pour les utilisateurs
 					/*$cmd = $this->getCmd(null, 'ops_mode');
 					if (!is_object($cmd)) {
@@ -1391,7 +1446,7 @@ class sonoffdiyCmd extends cmd {
 					'subDevId'      => $esclave_id,
 					'switches'    => $switches
 					
-					),
+					)
 				);	
 			}
 
@@ -1402,7 +1457,7 @@ class sonoffdiyCmd extends cmd {
 				'data'    => array(
 					'subDevId'      => $esclave_id
 										
-				),
+				)
 			);	
 			
 			if ($command=="switch")			
@@ -1410,19 +1465,20 @@ class sonoffdiyCmd extends cmd {
 				'deviceid'        => $device_id,
 				'data'    => array(
 					'switch'      => $valeur
-				),
+				)
 			);
 			
 			if ($command=="monitor")			
 			$data = array(
 				'deviceid'        => $device_id,
 				'data'    => array(
-					'url'      => "http://192.168.1.21",
+//					'url'      => "http://192.168.1.21",
+					'url'      => network::getNetworkAccess('internal'),
 					'port'      => 5353,
 					'subDevId'      => $esclave_id,
 					'outlet'      => intval($outlet),
-					'time'      => 70 //j'ai mis 70 car le cron est toutes les 60s à tester...
-				),
+					'time'      => 5 
+				)
 			);		
 			
 			if ($command=="startup")			
@@ -1430,7 +1486,7 @@ class sonoffdiyCmd extends cmd {
 				'deviceid'        => $device_id,
 				'data'    => array(
 					'startup'      => $valeur
-				),
+				)
 			);				
 
 			if ($command=="ops_mode")			
@@ -1438,7 +1494,7 @@ class sonoffdiyCmd extends cmd {
 				'deviceid'        => $device_id,
 				'data'    => array(
 					'ops_mode'      => 'ewelink'
-				),
+				)
 			);	
 		
 			if ($command=="pulse")	
@@ -1450,23 +1506,36 @@ class sonoffdiyCmd extends cmd {
 						'data'    => array(
 							'pulse'      => $valeur,
 							'pulseWidth'      => $parameter,
-						),
+						)
 					);	
 				 else 					
 					$data = array(
 						'deviceid'        => $device_id,
 						'data'    => array(
 							'pulse'      => $valeur
-						),
+						)
 					);
 					
 			$vide = (object)[];
-			if (($command=="signal_strength") || ($command=="subDevList") || ($command=="info") || ($command=="getState")	)		
-			$data = array(
-				'deviceid'        => $device_id,
-				'data'    => $vide,
-			);	
-			
+			if (($command=="signal_strength") || ($command=="subDevList") || ($command=="info") || ($command=="getState"))		
+				$data = array(
+					'deviceid'        => $device_id,
+					'data'    => $vide
+				);	
+			if ($command=="getState") {
+				if ($valeur=="getStateEsclave") 
+					$data = array(
+						'deviceid'        => $device_id,
+						'data'    => array(
+							'subDevId'      => $esclave_id
+						)
+					);
+					else
+					$data = array(
+						'deviceid'        => $device_id,
+						'data'    => $vide
+					);		
+			}
 			$payload = json_encode($data);
 		log::add('sonoffdiy', 'info', ' ');
 		log::add('sonoffdiy', 'info', '╔══════════════════════[Envoi '.$command.' sur '.$eqLogic->getName().']═════════════════════════════════════════════════════════');
@@ -1480,7 +1549,7 @@ class sonoffdiyCmd extends cmd {
 			curl_close($ch);
 			
 		if (is_null($result)) {
-			log::add('sonoffdiy', 'error', '║ ******** Souci sur la commande '.$this->getName().' de '.$eqLogic->getName().' ********');
+			log::add('sonoffdiy', 'warning', '║ ******** Souci sur la commande '.$this->getName().' de '.$eqLogic->getName().' ********');
 			return false;
 		}
 		log::add('sonoffdiy', 'info', '║ ════envoi══> '.$url." ".$payload);
@@ -1503,7 +1572,7 @@ class sonoffdiyCmd extends cmd {
 				$txterror="L'opération a échoué et les paramètres de la demande ne sont pas valides. Par exemple, l'appareil ne prend pas en charge la définition d'informations spécifiques sur l'appareil.";
 				break;			
 				}
-			log::add('sonoffdiy', 'error', '║ ******** Souci sur la commande '.$this->getName().' de '.$eqLogic->getName().' Error N°'.$result['error'].' '.$txterror.'********');
+			log::add('sonoffdiy', 'warning', '║ ******** Souci sur la commande '.$this->getName().' de '.$eqLogic->getName().' Error N°'.$result['error'].' '.$txterror.'********');
 			// Pour avoir les codes erreur : https://github.com/itead/Sonoff_Devices_DIY_Tools/blob/master/SONOFF%20DIY%20MODE%20Protocol%20Doc%20v1.4.md
 		}
 
