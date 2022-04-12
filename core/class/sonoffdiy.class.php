@@ -29,7 +29,7 @@ class sonoffdiy extends eqLogic {
         $plugin = plugin::byId('sonoffdiy');
         $eqLogics = eqLogic::byType($plugin->getId());
             foreach ($eqLogics as $eqLogic) {
-                if ($eqLogic->getConfiguration('device')=="SPM") { // On n'actualise que les SPM
+                if (($eqLogic->getConfiguration('device')=="SPM") && ($eqLogic->getIsEnable())) { // On n'actualise que les SPM
                     //log::add('sonoffdiy', 'debug', 'Refresh automatique (CRON) de ' . $eqLogic->getName());
 					log::add('sonoffdiy','info', "╞══════════════════════[Refresh automatique (CRON) de ". $eqLogic->getName()."]═════════════════════════════════════════════════════════");
                     $eqLogic->refresh();
@@ -856,6 +856,14 @@ class sonoffdiy extends eqLogic {
 				
 				if ($this->getConfiguration('device')=="SPM")	{
 					// UNIQUEMENT LES COMMANDES SPM
+					
+					//---- Securité pour supprimer la commande monitor qui est devenue monitor0 monitor1 monitor2... pourra etre supprimée en 2023
+					$cmd = $this->getCmd(null, "monitor");
+						if (is_object($cmd)) $cmd->remove();
+					$cmd = $this->getCmd(null, "ops_mode"); // mode pour retourner en ewelink, ne pas le laisser activé.
+						if (is_object($cmd)) $cmd->remove();
+						
+					//--------------------------------------------------------------------------------------------------
 					$R3=true;
 					for ($ligne=1; $ligne<4; $ligne++) {
 						$switch = $this->getCmd(null, 'switch'.$ligne);
@@ -877,7 +885,7 @@ class sonoffdiy extends eqLogic {
 					for ($ligne=0; $ligne<4; $ligne++) {
 						$cmd = $this->getCmd(null, 'On'.$ligne);
 						if (!is_object($cmd)) {
-							$premierSAVE = true;
+							$premierSAVE = true; // ? peut etre plus utile...
 							$cmd = new sonoffdiyCmd();
 							$cmd->setType('action');
 							$cmd->setLogicalId('On'.$ligne);
@@ -895,7 +903,7 @@ class sonoffdiy extends eqLogic {
 						}				
 						$cmd = $this->getCmd(null, 'Off'.$ligne);
 						if (!is_object($cmd)) {
-							$premierSAVE = true;
+							$premierSAVE = true;// ? peut etre plus utile...
 							$cmd = new sonoffdiyCmd();
 							$cmd->setType('action');
 							$cmd->setLogicalId('Off'.$ligne);
@@ -912,6 +920,22 @@ class sonoffdiy extends eqLogic {
 							$cmd->setDisplay('icon', '<i class="icon_red icon fas fa-times"></i>');
 							$cmd->save();
 						}
+						$cmd = $this->getCmd(null, 'monitor'.$ligne);
+						if (!is_object($cmd)) {
+							$cmd = new sonoffdiyCmd();
+							$cmd->setType('action');
+							$cmd->setLogicalId('monitor'.$ligne);
+							$cmd->setSubType('other');
+							$cmd->setEqLogic_id($this->getId());
+							$cmd->setName('Lancer Temps réel '.$ligne);
+							$cmd->setConfiguration('request', 'monitor?outlet='.$ligne);
+							$cmd->setDisplay('title_disable', 1);
+							$cmd->setOrder($compteurOrderCmd); $compteurOrderCmd++;
+							$cmd->setConfiguration('RunWhenRefresh', 1);				
+							//$cmd->setDisplay('icon', '<i class="fa jeedomapp-audiospeak"></i>');
+							$cmd->setIsVisible(0);
+							$cmd->save();
+						}						
 					}
 					$cmd = $this->getCmd(null, 'subDevList');
 					if (!is_object($cmd)) {
@@ -943,21 +967,24 @@ class sonoffdiy extends eqLogic {
 						$cmd->setIsVisible(0);
 						$cmd->save();
 					}				
-					$cmd = $this->getCmd(null, 'monitor');
+					
+					// Commande qui permet de repasser en mode eWelink, désactivée car trop dangereuse pour les utilisateurs
+					/*$cmd = $this->getCmd(null, 'ops_mode');
 					if (!is_object($cmd)) {
 						$cmd = new sonoffdiyCmd();
 						$cmd->setType('action');
-						$cmd->setLogicalId('monitor');
+						$cmd->setLogicalId('ops_mode');
 						$cmd->setSubType('other');
 						$cmd->setEqLogic_id($this->getId());
-						$cmd->setName('Lancer Temps réel');
-						$cmd->setConfiguration('request', 'monitor');
-						$cmd->setDisplay('title_disable', 1);
-						$cmd->setConfiguration('RunWhenRefresh', 1);				
+						$cmd->setName('Repasser en eWelink');
+						$cmd->setConfiguration('expliq', 'Repasser en eWelink');
+						$cmd->setConfiguration('request', 'ops_mode');
+						//$cmd->setDisplay('title_disable', 1);
+						//$cmd->setConfiguration('RunWhenRefresh', 1);				
 						//$cmd->setDisplay('icon', '<i class="fa jeedomapp-audiospeak"></i>');
 						$cmd->setIsVisible(0);
 						$cmd->save();
-					}					
+					}	*/				
 				} else {
 					//UNIQUEMENT LES NON SPM
 						$cmd = $this->getCmd(null, 'Info');
@@ -1327,9 +1354,10 @@ class sonoffdiyCmd extends cmd {
 	list($argument1, $argument2) = explode('&', $arguments, 2);
 	list($variable, $valeur) = explode('=', $argument1, 2);
 	list($variable2, $outlet) = explode('=', $argument2, 2);
-	$outlet=str_replace('"', '', $outlet);
+	if ($outlet=="") $outlet=$valeur; // dans le cas ou la commande ne comporte pas de valeur mais uniquement outlet comme par exemple Monitor
+	$outlet=str_replace('"', '', $outlet); 
 	$parameter=(int)$this->getConfiguration('parameter');
-	//log::add('sonoffdiy', 'info', '----variable:*'.$variable.'* valeur:'.$valeur);
+	//log::add('sonoffdiy', 'info', '----variable:*'.$variable.'* valeur:'.$valeur.'* outlet:'.$outlet);
 	//log::add('sonoffdiy', 'info', '----Command:*'.$command.'* arguments:'.$arguments);
 	//log::add('sonoffdiy', 'info', '----Options:*'.json_encode($_options));
 	//log::add('sonoffdiy', 'info', '----$_optionsselect:'.$_options['select']);
@@ -1392,9 +1420,8 @@ class sonoffdiyCmd extends cmd {
 					'url'      => "http://192.168.1.21",
 					'port'      => 5353,
 					'subDevId'      => $esclave_id,
-					'subDevId'      => $esclave_id,
-					'outlet'      => 0,
-					'time'      => 180
+					'outlet'      => intval($outlet),
+					'time'      => 70
 				),
 			);		
 			
@@ -1405,6 +1432,14 @@ class sonoffdiyCmd extends cmd {
 					'startup'      => $valeur
 				),
 			);				
+
+			if ($command=="ops_mode")			
+			$data = array(
+				'deviceid'        => $device_id,
+				'data'    => array(
+					'ops_mode'      => 'ewelink'
+				),
+			);	
 		
 			if ($command=="pulse")	
 				

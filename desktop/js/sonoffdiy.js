@@ -63,7 +63,7 @@ function addCmdToTable(_cmd)
 					DefinitionDivPourCommandesPredefinies="";
 //  if ((init(_cmd.logicalId) == 'whennextreminder') || (init(_cmd.logicalId) == '00whennextalarm') || (init(_cmd.logicalId) == 'whennextreminderlabel') || (init(_cmd.logicalId) == 'musicalalarmmusicentity') || (init(_cmd.logicalId) == 'whennextmusicalalarm')) {
 	$masqueCmdAction="";							
-  if ((init(_cmd.logicalId) == 'Info') || (init(_cmd.logicalId) == 'signal_strength') || (init(_cmd.logicalId) == 'monitor') || (init(_cmd.logicalId) == 'getState') || (init(_cmd.logicalId) == 'subDevList')) {
+  if ((init(_cmd.logicalId) == 'Info') || (init(_cmd.logicalId) == 'signal_strength') || (init(_cmd.logicalId).substring(0,7) == 'monitor') || (init(_cmd.logicalId) == 'getState') || (init(_cmd.logicalId) == 'subDevList')) {
     $masqueCmdAction='style="display:none;"';
   }
 
