@@ -1,7 +1,7 @@
 {
 	"id" : "sonoffdiy",
 	"name" : "Sonoff DIY",
-	"description" : "Commander vos équipements Sonoff-DIY sans aucun flashage du module et en restant sur votre réseau local (pas de connexion cloud obligatoire, fonctionne sans internet)",
+	"description" : "Commander vos équipements Sonoff-DIY sans aucun flashage du module et en restant sur votre réseau local (pas de connexion cloud obligatoire, fonctionne sans internet). Sont compatibles les Mini, Mini R2, Mini R3, Basic R3, RF R3, D1, SPM, consulter la doc pour mise à jour des équipements compatibles.",
 	"licence" : "AGPL",
 	"author" : "Sigalou",
 	"require" : "3.3.24",
