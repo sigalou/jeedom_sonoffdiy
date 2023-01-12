@@ -1193,7 +1193,7 @@ return [$indice, $derniertime];
     					$cmd = new sonoffdiyCmd();
     					$cmd->setType('info');
     					$cmd->setLogicalId('startup');
-      					$cmd->setSubType('binary');        
+      					$cmd->setSubType('string');        
     					$cmd->setEqLogic_id($this->getId());
     					$cmd->setName('Etat à la mise sous tension');
     					$cmd->setIsVisible(0);
