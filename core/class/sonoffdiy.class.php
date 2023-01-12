@@ -714,8 +714,22 @@ class sonoffdiy extends eqLogic {
 						$cestBonOnaTrouveleDevice=false;
 						foreach (eqLogic::byType('sonoffdiy') as $eqLogic){
 							//log::add('sonoffdiy_mDNS','info'," ***on test si ".$eqLogic->getConfiguration('device_id')." = ".$_ID);
-							if ((!($eqLogic->getConfiguration('device_id') == $_ID)) && (!($eqLogic->getConfiguration('esclave_id') == $_ID)) && ($_ID!='')) continue;
-							
+							//if ((!($eqLogic->getConfiguration('device_id') == $_ID)) && (!($eqLogic->getConfiguration('esclave_id') == $_ID)) && ($_ID!='')) continue;
+
+							/*VB-)*/
+                            // ----- S'il s'agit d'un miniR3 ou d'un miniR2 alors ils supportent de ne pas avoir de deviceID dans la 
+                            // configuration. Il faut donc ne prendre en compte que le eqLogic id de l'objet concerné. 
+                            // Sans impact sur la logic pour les autres objets
+                            //log::add('sonoffdiy','debug'," device type ".$this->getConfiguration('device'));
+                            //log::add('sonoffdiy','debug'," this ip ".$this->getId());
+                            //log::add('sonoffdiy','debug'," eqlogic ip ".$eqLogic->getId());
+                            if (   (($this->getConfiguration('device')=="miniR3") || ($this->getConfiguration('device')=="miniR2")) 
+                                && ($eqLogic->getId() != $this->getId())) continue;
+                                
+							if (   ($this->getConfiguration('device')!="miniR3") 
+                                && ($this->getConfiguration('device')!="miniR2") 
+                                && (!($eqLogic->getConfiguration('device_id') == $_ID)) && (!($eqLogic->getConfiguration('esclave_id') == $_ID)) && ($_ID!='')) continue;
+						
 							//log::add('sonoffdiy_mDNS','info'," ***ok trouvé ".$_ID);
 							$cestBonOnaTrouveleDevice=true;
 							foreach ($_data_decoded as $LogicalId => $value){
