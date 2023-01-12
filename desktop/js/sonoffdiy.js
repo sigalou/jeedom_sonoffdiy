@@ -90,7 +90,10 @@ function addCmdToTable(_cmd)
    +   '<td>'
  //     +     '<span class="type" type="' + init(_cmd.type) + '">' + jeedom.cmd.availableType() + '</span>'
      +     '<input class="cmdAttr form-control type input-sm" data-l1key="type" value="info" type="hidden" disabled  />'
-     +     '<input class="cmdAttr form-control type input-sm" data-l1key="configuration" data-l2key="value" readonly  />'
+// VB-)
+//     +     '<input class="cmdAttr form-control type input-sm" data-l1key="configuration" data-l2key="value" readonly  />'
+     +     '<span class="cmdAttr" data-l1key="htmlstate"></span>'
+// VB-)
 //     +     '<input class="cmdAttr form-control type input-sm" data-l1key="value" disabled style="margin-bottom : 5px;" />'
  //   +   '</td>'
 //    +   '<td>'     
