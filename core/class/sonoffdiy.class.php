@@ -777,7 +777,20 @@ class sonoffdiy extends eqLogic {
 											}
 										}
 									}
-								} 								
+								} 				
+/*VB-)*/
+                                // ----- Dans la cas du miniR2 l'id est renvoyé dans 'deviceid', il faut donc le reflecher vers le
+                                // nom de la commande "IDdetectee"
+                                elseif (($eqLogic->getConfiguration('device')=="miniR2") && ($LogicalId=='deviceid') && ($value!='')) {
+                                  self::sauvegardeCmdsInfoBis("IDdetectee", $value, $eqLogic);
+                                				
+                                }
+                                // ----- Dans la cas du miniR2 le rssi est renvoyé dans 'signalStrength', il faut donc le reflecher vers le
+                                // nom de la commande "rssi"
+                                elseif (($eqLogic->getConfiguration('device')=="miniR2") && ($LogicalId=='signalStrength') && ($value!='')) {
+                                  self::sauvegardeCmdsInfoBis("rssi", $value, $eqLogic);
+                                				
+                                }
 								elseif (!is_array($value)) self::sauvegardeCmdsInfoBis($LogicalId, $value, $eqLogic);
 								else log::add('sonoffdiy_mDNS','info'," Des données non enregistrées : ".json_encode($LogicalId)." = ".json_encode($value));
 							
