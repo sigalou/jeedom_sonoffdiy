@@ -757,6 +757,9 @@ class sonoffdiy extends eqLogic {
 											if ($pulses['outlet']=="0") {
 												self::sauvegardeCmdsInfoBis("pulse", $pulses['pulse'], $eqLogic);// on part du principe à ce stade (MiniR3) qu'il n'y a qu'une chaine, la chaine 0 les 3 autres sont ignorés, à voir pour les prochains devices
 												self::sauvegardeCmdsInfoBis("pulseWidth", $pulses['width'], $eqLogic);// on part du principe à ce stade (MiniR3) qu'il n'y a qu'une chaine, la chaine 0 les 3 autres sont ignorés, à voir pour les prochains devices
+/*VB-)*/
+   												self::sauvegardeCmdsInfoBis("pulseEndState", $pulses['switch'], $eqLogic);// on part du principe à ce stade (MiniR3) qu'il n'y a qu'une chaine, la chaine 0 les 3 autres sont ignorés, à voir pour les prochains devices
+/*VB-)*/
 											}
 										}
 									}
@@ -1120,7 +1123,7 @@ return [$indice, $derniertime];
     
 					}
 
-				if (!$R3) {
+
 					$cmd = $this->getCmd(null, 'PulseOff');
 					if (!is_object($cmd)) {
 						$cmd = new sonoffdiyCmd();
@@ -1130,7 +1133,10 @@ return [$indice, $derniertime];
 						$cmd->setEqLogic_id($this->getId());
 						$cmd->setName('Pulse Off');
 						//$cmd->setConfiguration('parameter', '5000');					
-						$cmd->setConfiguration('request', 'pulse?command=off');
+    					if ($R3)
+    						$cmd->setConfiguration('request', 'pulses?command=off&outlet=0');
+                        else
+    						$cmd->setConfiguration('request', 'pulse?command=off');
 						$cmd->setConfiguration('expliq', 'Désactive le mode Pulse');
 						$cmd->setDisplay('title_disable', 1);
 						$cmd->setOrder($compteurOrderCmd); $compteurOrderCmd++;
@@ -1149,7 +1155,10 @@ return [$indice, $derniertime];
 						$cmd->setEqLogic_id($this->getId());
 						$cmd->setName('Pulse On');
 						$cmd->setConfiguration('parameter', '5000');
-						$cmd->setConfiguration('request', 'pulse?command=on');
+    					if ($R3)
+    						$cmd->setConfiguration('request', 'pulses?command=on&outlet=0');
+                        else
+    						$cmd->setConfiguration('request', 'pulse?command=on');
 						$cmd->setConfiguration('expliq', 'Active le mode Pulse et fixe la tempo en ms (multiple de 500ms)');
 						$cmd->setDisplay('title_disable', 1);
 						$cmd->setOrder($compteurOrderCmd); $compteurOrderCmd++;
@@ -1157,8 +1166,6 @@ return [$indice, $derniertime];
 						$cmd->setIsVisible(0);
 						$cmd->save();
 					}
-					
-			    }
 
     				$cmd = $this->getCmd(null, 'startup_action'); // 
     				if (!is_object($cmd)) {
@@ -1195,9 +1202,7 @@ return [$indice, $derniertime];
     					//$cmd->setDisplay('forceReturnLineBefore', true);
     					$cmd->save();
     				}
-
-					
-				if (!$R3) {
+                  					
 					$cmd = $this->getCmd(null, 'pulse');
 					if (!is_object($cmd)) {
 						$cmd = new sonoffdiyCmd();
@@ -1228,7 +1233,26 @@ return [$indice, $derniertime];
 						//$cmd->setDisplay('forceReturnLineBefore', true);
 						$cmd->save();
 					}
+                    
+                    if ($R3) {
+    					$cmd = $this->getCmd(null, 'pulseEndState');
+    					if (!is_object($cmd)) {
+    						$cmd = new sonoffdiyCmd();
+    						$cmd->setType('info');
+    						$cmd->setLogicalId('pulseEndState');
+    						$cmd->setSubType('string');
+    						$cmd->setEqLogic_id($this->getId());
+    						$cmd->setName('Etat à la fin du Pulse');
+    						$cmd->setIsVisible(0);
+    						$cmd->setOrder($compteurOrderCmd); $compteurOrderCmd++;
+    						//$cmd->setDisplay('icon', '<i class="fa fa-volume-up"></i>');
+    						//$cmd->setDisplay('forceReturnLineBefore', true);
+    						$cmd->save();
+    					}
+                    }
 					
+/*VB-)*/                    
+				if (!$R3) {
 					$cmd = $this->getCmd(null, 'ssid');
 					if (!is_object($cmd)) {
 						$cmd = new sonoffdiyCmd();
@@ -1260,6 +1284,8 @@ return [$indice, $derniertime];
 					$cmd->save();
 				}
 				
+/*VB-)*/                    
+				if (!$R3) {
 				$cmd = $this->getCmd(null, 'IDdetectee');
 				if (!is_object($cmd)) {
 					$cmd = new sonoffdiyCmd();
@@ -1274,6 +1300,7 @@ return [$indice, $derniertime];
 					//$cmd->setDisplay('icon', '<i class="fa fa-volume-up"></i>');
 					//$cmd->setDisplay('forceReturnLineBefore', true);
 					$cmd->save();	
+				}
 				}
 				
 	
@@ -1557,6 +1584,49 @@ class sonoffdiyCmd extends cmd {
 						)
 					);
 					
+/*VB-)*/
+			if ($command=="pulses") {
+                // ----- width doit être multiple de 500ms et entre 500 et 3599500
+                if (($parameter < 500) || ($parameter > 3599500) || ($parameter % 500 != 0)) {
+                  $parameter = 5000;
+                }
+                // ----- On doit indiquer les 4 outlets sinon la commande est refusée (contrairement à switches)
+				$pulses=[
+					[
+                        "pulse" => $valeur,
+                        "switch" => "off",
+                        "width" => $parameter,
+                        "outlet" => intval($outlet)
+					],
+					[
+                        "pulse" => "off",
+                        "switch" => "off",
+                        "width" => 2000,
+                        "outlet" => 1
+					],
+					[
+                        "pulse" => "off",
+                        "switch" => "off",
+                        "width" => 2000,
+                        "outlet" => 2
+					],
+					[
+                        "pulse" => "off",
+                        "switch" => "off",
+                        "width" => 2000,
+                        "outlet" => 3
+					]
+				];	
+				$data = array(
+				'deviceid'        => $device_id,
+				'data'    => array(
+					'pulses'    => $pulses					
+					)
+				);	
+            }
+/*VB-)*/
+                    
+                    
 			$vide = (object)[];
 			if (($command=="signal_strength") || ($command=="subDevList") || ($command=="info") || ($command=="getState"))		
 				$data = array(
