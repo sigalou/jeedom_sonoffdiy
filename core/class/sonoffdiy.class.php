@@ -1661,6 +1661,15 @@ class sonoffdiyCmd extends cmd {
 						'data'    => $vide
 					);		
 			}
+
+/*VB-)*/
+            // ----- Dans le cas du miniR3, il est possible de ne pas avoir indiqué le deviceid, mais dans ce cas il ne faut pas envoyer
+            // le champ 'deviceid' du tout.
+            // Dans le cas du miniR2, on peut mettre n'importe quoi dans le champ deviceid ça ne change rien
+            if (($this->getEqLogic()->getConfiguration('device')=="miniR3") && ($device_id == '') && (isset($data['deviceid']))) {
+			  unset($data['deviceid']);
+            }
+
 			$payload = json_encode($data);
 		log::add('sonoffdiy', 'info', ' ');
 		log::add('sonoffdiy', 'info', '╔══════════════════════[Envoi '.$command.' sur '.$eqLogic->getName().']═════════════════════════════════════════════════════════');
