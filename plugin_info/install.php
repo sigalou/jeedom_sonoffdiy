@@ -49,6 +49,47 @@ function sonoffdiy_update() {
         $cron->save();
     }
     $cron->stop();
+    
+/*VB-)*/                        
+  // ----- Look for each equip
+  $eqLogics = eqLogic::byType('sonoffdiy');
+  foreach ($eqLogics as $v_eq) {
+    // ----- Update pour les miniR3
+    if ($v_eq->getConfiguration('device')=="miniR3") {
+      // ----- On créé la commande 'startup_action' si elle n'existe pas déjà
+    	$cmd = $v_eq->getCmd(null, 'startup_action');
+    	if (!is_object($cmd)) {
+    		$cmd = new sonoffdiyCmd();
+    		$cmd->setType('action');
+    		$cmd->setLogicalId('startup_action');
+    		$cmd->setSubType('select');
+    		$cmd->setEqLogic_id($v_eq->getId());
+    		$cmd->setName('Etat initial');					
+    		$cmd->setConfiguration('request', 'startups?state=#select#&outlet=0');
+    		$cmd->setConfiguration('listValue', 'on|on;off|off;stay|stay');
+    		$cmd->setConfiguration('expliq', "Définir l'état à la mise sous tension");
+    		$cmd->setDisplay('title_disable', 1);
+    		$cmd->setOrder(4);
+    		$cmd->setIsVisible(0);
+    		$cmd->save();
+    	}
+
+      // ----- On créé la commande 'startup_action' si elle n'existe pas déjà
+		$cmd = $v_eq->getCmd(null, 'startup');
+		if (!is_object($cmd)) {
+			$cmd = new sonoffdiyCmd();
+			$cmd->setType('info');
+			$cmd->setLogicalId('startup');
+   			$cmd->setSubType('string');
+			$cmd->setEqLogic_id($v_eq->getId());
+			$cmd->setName('Etat à la mise sous tension');
+			$cmd->setIsVisible(0);
+			$cmd->setOrder(15); 
+			$cmd->save();
+		}
+    }
+  }    
+/*VB-)*/                        
 }
 
 function sonoffdiy_remove() {
