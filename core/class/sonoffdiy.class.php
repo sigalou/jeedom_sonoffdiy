@@ -1115,9 +1115,11 @@ return [$indice, $derniertime];
 							$cmd->setDisplay('icon', '<i class="icon_red icon fas fa-times"></i>');
 							$cmd->save();
 						}				
+                        
+                        
+    
 					}
 
-				
 				if (!$R3) {
 					$cmd = $this->getCmd(null, 'PulseOff');
 					if (!is_object($cmd)) {
@@ -1156,40 +1158,46 @@ return [$indice, $derniertime];
 						$cmd->save();
 					}
 					
-					$cmd = $this->getCmd(null, 'startup_action'); // 
-					if (!is_object($cmd)) {
-						$cmd = new sonoffdiyCmd();
-						$cmd->setType('action');
-						$cmd->setLogicalId('startup_action');
-						$cmd->setSubType('select');
-						$cmd->setEqLogic_id($this->getId());
-						$cmd->setName('Etat initial');					
-						$cmd->setConfiguration('request', 'startup?state=#select#');
-						$cmd->setConfiguration('listValue', 'on|on;off|off;stay|stay');
-						$cmd->setConfiguration('expliq', "Définir l'état à la mise sous tension");
-						$cmd->setDisplay('title_disable', 1);
-						$cmd->setOrder($compteurOrderCmd); $compteurOrderCmd++;
-						//$cmd->setDisplay('icon', '<i class="fa jeedomapp-audiospeak"></i>');
-						$cmd->setIsVisible(0);
-						$cmd->save();
-					}
-				
-					$cmd = $this->getCmd(null, 'startup');
-					if (!is_object($cmd)) {
-						$cmd = new sonoffdiyCmd();
-						$cmd->setType('info');
-						$cmd->setLogicalId('startup');
-						$cmd->setSubType('binary');
-						$cmd->setEqLogic_id($this->getId());
-						$cmd->setName('Etat à la mise sous tension');
-						$cmd->setIsVisible(0);
-						$cmd->setOrder($compteurOrderCmd); $compteurOrderCmd++;
-						//$cmd->setDisplay('icon', '<i class="fa fa-volume-up"></i>');
-						//$cmd->setDisplay('forceReturnLineBefore', true);
-						$cmd->save();
-					}
+			    }
+
+    				$cmd = $this->getCmd(null, 'startup_action'); // 
+    				if (!is_object($cmd)) {
+    					$cmd = new sonoffdiyCmd();
+    					$cmd->setType('action');
+    					$cmd->setLogicalId('startup_action');
+    					$cmd->setSubType('select');
+    					$cmd->setEqLogic_id($this->getId());
+    					$cmd->setName('Etat initial');					
+    					if ($R3)
+    					      $cmd->setConfiguration('request', 'startups?state=#select#&outlet=0');
+                          else
+    					      $cmd->setConfiguration('request', 'startup?state=#select#');
+    					$cmd->setConfiguration('listValue', 'on|on;off|off;stay|stay');
+    					$cmd->setConfiguration('expliq', "Définir l'état à la mise sous tension");
+    					$cmd->setDisplay('title_disable', 1);
+    					$cmd->setOrder($compteurOrderCmd); $compteurOrderCmd++;
+    					//$cmd->setDisplay('icon', '<i class="fa jeedomapp-audiospeak"></i>');
+    					$cmd->setIsVisible(0);
+    					$cmd->save();
+    				}
+    
+    				$cmd = $this->getCmd(null, 'startup');
+    				if (!is_object($cmd)) {
+    					$cmd = new sonoffdiyCmd();
+    					$cmd->setType('info');
+    					$cmd->setLogicalId('startup');
+      					$cmd->setSubType('binary');        
+    					$cmd->setEqLogic_id($this->getId());
+    					$cmd->setName('Etat à la mise sous tension');
+    					$cmd->setIsVisible(0);
+    					$cmd->setOrder($compteurOrderCmd); $compteurOrderCmd++;
+    					//$cmd->setDisplay('icon', '<i class="fa fa-volume-up"></i>');
+    					//$cmd->setDisplay('forceReturnLineBefore', true);
+    					$cmd->save();
+    				}
 
 					
+				if (!$R3) {
 					$cmd = $this->getCmd(null, 'pulse');
 					if (!is_object($cmd)) {
 						$cmd = new sonoffdiyCmd();
@@ -1421,6 +1429,9 @@ class sonoffdiyCmd extends cmd {
 	//if ((isset($_options['select'])) && ($_options['select'] != '')) log::add('sonoffdiy', 'info', '*****************************************************************************');
 	//if ((isset($_options['message'])) && ($_options['message'] != '')) $parameter=$_options['message']; // pour Pulse ON
 	if (($command=="startup") && (isset($_options['select'])) && ($_options['select'] != '') && ($valeur == '')) $valeur="stay";
+/*VB-)*/
+	if (($command=="startups") && (isset($_options['select'])) && ($_options['select'] != '') && ($valeur == '')) $valeur="stay";
+/*VB-)*/
 	if (($command=="pulse") && ($valeur=="off")) $parameter="123";
 	
 	// Rustine pour corriger l'erreur de $cmd->setConfiguration('listValue', 'on|on; off|off; stay|stay'); (espace en trop avant Off et Stay)
@@ -1488,6 +1499,36 @@ class sonoffdiyCmd extends cmd {
 					'startup'      => $valeur
 				)
 			);				
+
+/*VB-)*/
+			if ($command=="startups")	{		
+                // ----- On doit indiquer les 4 outlets sinon la commande est refusée (contrairement à switches)
+				$configure=[
+					[
+						"startup" => $valeur,
+						"outlet" => intval($outlet)
+					],
+					[
+						"startup" => "off",
+						"outlet" => 1
+					],
+					[
+						"startup" => "off",
+						"outlet" => 2
+					],
+					[
+						"startup" => "off",
+						"outlet" => 3
+					]
+				];	
+				$data = array(
+				'deviceid'        => $device_id,
+				'data'    => array(
+					'configure'    => $configure					
+					)
+				);	
+			}
+/*VB-)*/
 
 			if ($command=="ops_mode")			
 			$data = array(
@@ -1577,6 +1618,18 @@ class sonoffdiyCmd extends cmd {
 		}
 
 		//$_id=$eqLogic->getConfiguration('device_id');
+
+/*VB-)*/
+        // ----- Mise à jour des états car pas d'erreur de retour donc normalement le status a été appliqué
+        if ($nberror=="0") {
+          if (($command == 'switch') || ($command == 'switches')) {
+            $eqLogic->checkAndUpdateCmd('switch', ($valeur=='on'?1:0));
+          }
+          if (($command == 'startup') || ($command == 'startups')) {
+            $eqLogic->checkAndUpdateCmd('startup', $valeur);
+          }
+        }
+/*VB-)*/
 
 		
 		
