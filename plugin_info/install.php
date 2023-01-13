@@ -69,7 +69,7 @@ function sonoffdiy_update() {
     		$cmd->setConfiguration('listValue', 'on|on;off|off;stay|stay');
     		$cmd->setConfiguration('expliq', "Définir l'état à la mise sous tension");
     		$cmd->setDisplay('title_disable', 1);
-    		$cmd->setOrder(4);
+    		$cmd->setOrder(5);
     		$cmd->setIsVisible(0);
     		$cmd->save();
     	}

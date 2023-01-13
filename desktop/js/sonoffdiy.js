@@ -170,8 +170,18 @@ function addCmdToTable(_cmd)
 	tr +=   '</td>';
 	tr +=   '<td>';
 	
-		if ((init(_cmd.logicalId)=="PulseOff")||(init(_cmd.logicalId)=="PulseOn")) {
+// VB-)
+		if (init(_cmd.logicalId)=="PulseOff") {
+        // ----- Je pense que l'on peut aussi supprimer l'affichage du pulsewidth pour tous les devices. Mais je ne sais pas tester sur les autres donc je en touche pas
+        // l'idee serait de décharger l'affichage
 			tr +=     '<input class="tooltips cmdAttr form-control input-sm" data-l1key="configuration" data-l2key="parameter" style="margin-top : 3px;"> ';
+			//tr +=   '</td>';
+			//tr +=   '<td>';
+			tr +=     '';
+		}
+		else if (init(_cmd.logicalId)=="PulseOn") {
+			tr +=     '<span style="font-size: 10px;">{{Pulse width}}:<input class="tooltips cmdAttr form-control input-sm" data-l1key="configuration" data-l2key="parameter" style="margin-top : 3px;"> ';
+			tr +=     '<span style="font-size: 10px;">{{Etat fin pulse}}:</span><input class="tooltips cmdAttr form-control input-sm" data-l1key="configuration" data-l2key="etat_fin_pulse" style="margin-top : 3px;"> ';
 			//tr +=   '</td>';
 			//tr +=   '<td>';
 			tr +=     '';

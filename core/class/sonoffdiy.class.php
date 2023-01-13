@@ -1182,6 +1182,9 @@ return [$indice, $derniertime];
 						$cmd->setEqLogic_id($this->getId());
 						$cmd->setName('Pulse On');
 						$cmd->setConfiguration('parameter', '5000');
+                        /* VB-) */
+                        // ----- Pour MiniR3 : stocke l'état à la fin du pulse (permet d'inverser le mode du pulse) 
+						$cmd->setConfiguration('etat_fin_pulse', 'off');                        
     					if ($R3)
     						$cmd->setConfiguration('request', 'pulses?command=on&outlet=0');
                         else
@@ -1617,11 +1620,12 @@ class sonoffdiyCmd extends cmd {
                 if (($parameter < 500) || ($parameter > 3599500) || ($parameter % 500 != 0)) {
                   $parameter = 5000;
                 }
+                $v_etat_fin_pulse = ($this->getConfiguration('etat_fin_pulse') == 'on' ? 'on' : 'off');
                 // ----- On doit indiquer les 4 outlets sinon la commande est refusée (contrairement à switches)
 				$pulses=[
 					[
                         "pulse" => $valeur,
-                        "switch" => "off",
+                        "switch" => $v_etat_fin_pulse,
                         "width" => $parameter,
                         "outlet" => intval($outlet)
 					],
