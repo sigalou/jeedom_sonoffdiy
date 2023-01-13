@@ -56,7 +56,7 @@ function sonoffdiy_update() {
   foreach ($eqLogics as $v_eq) {
     // ----- Update pour les miniR3
     if ($v_eq->getConfiguration('device')=="miniR3") {
-      // ----- On créé la commande 'startup_action' si elle n'existe pas déjà
+      // ----- On crÃ©Ã© la commande 'startup_action' si elle n'existe pas dÃ©jÃ 
       
       try {
       
@@ -70,14 +70,14 @@ function sonoffdiy_update() {
     		$cmd->setName('Etat initial');					
     		$cmd->setConfiguration('request', 'startups?state=#select#&outlet=0');
     		$cmd->setConfiguration('listValue', 'on|on;off|off;stay|stay');
-    		$cmd->setConfiguration('expliq', "Définir l'état à la mise sous tension");
+    		$cmd->setConfiguration('expliq', "DÃ©finir l'Ã©tat Ã  la mise sous tension");
     		$cmd->setDisplay('title_disable', 1);
     		$cmd->setOrder(4);
     		$cmd->setIsVisible(0);
     		$cmd->save();
     	}
 
-      // ----- On créé la commande 'startup_action' si elle n'existe pas déjà
+      // ----- On crÃ©Ã© la commande 'startup_action' si elle n'existe pas dÃ©jÃ 
 		$cmd = $v_eq->getCmd(null, 'startup');
 		if (!is_object($cmd)) {
 			$cmd = new sonoffdiyCmd();
@@ -85,7 +85,7 @@ function sonoffdiy_update() {
 			$cmd->setLogicalId('startup');
    			$cmd->setSubType('string');
 			$cmd->setEqLogic_id($v_eq->getId());
-			$cmd->setName('Etat à la mise sous tension');
+			$cmd->setName('Etat Ã  la mise sous tension');
 			$cmd->setIsVisible(0);
 			$cmd->setOrder(15); 
 			$cmd->save();
