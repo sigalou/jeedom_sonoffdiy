@@ -738,9 +738,12 @@ class sonoffdiy extends eqLogic {
 									if (is_array($_data_decoded['switches'])) {
 										foreach ($_data_decoded['switches'] as $switches){
 											if ($switches['outlet']=="0") self::sauvegardeCmdsInfoBis("switch", $switches['switch'], $eqLogic);// Pour MiniR3 et SPM
-											if ($switches['outlet']=="1") self::sauvegardeCmdsInfoBis("switch1", $switches['switch'], $eqLogic);// Pour SPM
-											if ($switches['outlet']=="2") self::sauvegardeCmdsInfoBis("switch2", $switches['switch'], $eqLogic);// Pour SPM
-											if ($switches['outlet']=="3") self::sauvegardeCmdsInfoBis("switch3", $switches['switch'], $eqLogic);// Pour SPM
+                                            // VB-) ----- Ne pas créer les commandes 1,2,3 pour les miniR3
+                                            if ($this->getConfiguration('device')!="miniR3") {
+        										if ($switches['outlet']=="1") self::sauvegardeCmdsInfoBis("switch1", $switches['switch'], $eqLogic);// Pour SPM
+    											if ($switches['outlet']=="2") self::sauvegardeCmdsInfoBis("switch2", $switches['switch'], $eqLogic);// Pour SPM
+    											if ($switches['outlet']=="3") self::sauvegardeCmdsInfoBis("switch3", $switches['switch'], $eqLogic);// Pour SPM
+                                            }
 										}
 									}
 								} 
