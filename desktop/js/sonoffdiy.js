@@ -181,7 +181,9 @@ function addCmdToTable(_cmd)
 		}
 		else if (init(_cmd.logicalId)=="PulseOn") {
 			tr +=     '<span style="font-size: 10px;">{{Pulse width}}:<input class="tooltips cmdAttr form-control input-sm" data-l1key="configuration" data-l2key="parameter" style="margin-top : 3px;"> ';
-			tr +=     '<span style="font-size: 10px;">{{Etat fin pulse}}:</span><input class="tooltips cmdAttr form-control input-sm" data-l1key="configuration" data-l2key="etat_fin_pulse" style="margin-top : 3px;"> ';
+            if ($('.eqLogicAttr[data-l1key=configuration][data-l2key=device]').value() == "miniR3") {
+    			tr +=     '<span style="font-size: 10px;">{{Etat fin pulse}}:</span><input class="tooltips cmdAttr form-control input-sm" data-l1key="configuration" data-l2key="etat_fin_pulse" style="margin-top : 3px;"> ';
+            }
 			//tr +=   '</td>';
 			//tr +=   '<td>';
 			tr +=     '';
