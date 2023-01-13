@@ -92,8 +92,9 @@ function sonoffdiy_update() {
 		}
 
       } catch (Exception $e) {
-          log::add('sonoffdiy', 'error', $e->getMessage());
+          log::add('sonoffdiy', 'info', 'erreur creation commandes');
       }
+          log::add('sonoffdiy', 'info', 'Commandes OK');
 
     }
   }    
