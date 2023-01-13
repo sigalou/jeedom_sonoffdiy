@@ -57,6 +57,9 @@ function sonoffdiy_update() {
     // ----- Update pour les miniR3
     if ($v_eq->getConfiguration('device')=="miniR3") {
       // ----- On créé la commande 'startup_action' si elle n'existe pas déjà
+      
+      try {
+      
     	$cmd = $v_eq->getCmd(null, 'startup_action');
     	if (!is_object($cmd)) {
     		$cmd = new sonoffdiyCmd();
@@ -87,6 +90,11 @@ function sonoffdiy_update() {
 			$cmd->setOrder(15); 
 			$cmd->save();
 		}
+
+      } catch (Exception $e) {
+          log::add('sonoffdiy', 'error', $e->getMessage());
+      }
+
     }
   }    
 /*VB-)*/                        
