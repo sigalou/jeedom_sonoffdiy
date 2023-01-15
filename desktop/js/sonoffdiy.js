@@ -90,7 +90,10 @@ function addCmdToTable(_cmd)
    +   '<td>'
  //     +     '<span class="type" type="' + init(_cmd.type) + '">' + jeedom.cmd.availableType() + '</span>'
      +     '<input class="cmdAttr form-control type input-sm" data-l1key="type" value="info" type="hidden" disabled  />'
-     +     '<input class="cmdAttr form-control type input-sm" data-l1key="configuration" data-l2key="value" readonly  />'
+// VB-)
+//     +     '<input class="cmdAttr form-control type input-sm" data-l1key="configuration" data-l2key="value" readonly  />'
+     +     '<span class="cmdAttr" data-l1key="htmlstate"></span>'
+// VB-)
 //     +     '<input class="cmdAttr form-control type input-sm" data-l1key="value" disabled style="margin-bottom : 5px;" />'
  //   +   '</td>'
 //    +   '<td>'     
@@ -167,8 +170,20 @@ function addCmdToTable(_cmd)
 	tr +=   '</td>';
 	tr +=   '<td>';
 	
-		if ((init(_cmd.logicalId)=="PulseOff")||(init(_cmd.logicalId)=="PulseOn")) {
-			tr +=     '<input class="tooltips cmdAttr form-control input-sm" data-l1key="configuration" data-l2key="parameter" style="margin-top : 3px;"> ';
+// VB-)
+		if (init(_cmd.logicalId)=="PulseOff") {
+        // ----- Je pense que l'on peut aussi supprimer l'affichage du pulsewidth pour tous les devices. Mais je ne sais pas tester sur les autres donc je en touche pas
+        // l'idee serait de décharger l'affichage
+			//tr +=     '<input class="tooltips cmdAttr form-control input-sm" data-l1key="configuration" data-l2key="parameter" style="margin-top : 3px;"> ';
+			//tr +=   '</td>';
+			//tr +=   '<td>';
+			tr +=     '';
+		}
+		else if (init(_cmd.logicalId)=="PulseOn") {
+			tr +=     '<span style="font-size: 10px;">{{Pulse width}}:<input class="tooltips cmdAttr form-control input-sm" data-l1key="configuration" data-l2key="parameter" style="margin-top : 3px;"> ';
+            if ($('.eqLogicAttr[data-l1key=configuration][data-l2key=device]').value() == "miniR3") {
+    			tr +=     '<span style="font-size: 10px;">{{Etat fin pulse}}:</span><input class="tooltips cmdAttr form-control input-sm" data-l1key="configuration" data-l2key="etat_fin_pulse" style="margin-top : 3px;"> ';
+            }
 			//tr +=   '</td>';
 			//tr +=   '<td>';
 			tr +=     '';

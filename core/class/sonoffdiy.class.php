@@ -714,8 +714,22 @@ class sonoffdiy extends eqLogic {
 						$cestBonOnaTrouveleDevice=false;
 						foreach (eqLogic::byType('sonoffdiy') as $eqLogic){
 							//log::add('sonoffdiy_mDNS','info'," ***on test si ".$eqLogic->getConfiguration('device_id')." = ".$_ID);
-							if ((!($eqLogic->getConfiguration('device_id') == $_ID)) && (!($eqLogic->getConfiguration('esclave_id') == $_ID)) && ($_ID!='')) continue;
-							
+							//if ((!($eqLogic->getConfiguration('device_id') == $_ID)) && (!($eqLogic->getConfiguration('esclave_id') == $_ID)) && ($_ID!='')) continue;
+
+							/*VB-)*/
+                            // ----- S'il s'agit d'un miniR3 ou d'un miniR2 alors ils supportent de ne pas avoir de deviceID dans la 
+                            // configuration. Il faut donc ne prendre en compte que le eqLogic id de l'objet concerné. 
+                            // Sans impact sur la logic pour les autres objets
+                            //log::add('sonoffdiy','debug'," device type ".$this->getConfiguration('device'));
+                            //log::add('sonoffdiy','debug'," this ip ".$this->getId());
+                            //log::add('sonoffdiy','debug'," eqlogic ip ".$eqLogic->getId());
+                            if (   (($this->getConfiguration('device')=="miniR3") || ($this->getConfiguration('device')=="miniR2")) 
+                                && ($eqLogic->getId() != $this->getId())) continue;
+                                
+							if (   ($this->getConfiguration('device')!="miniR3") 
+                                && ($this->getConfiguration('device')!="miniR2") 
+                                && (!($eqLogic->getConfiguration('device_id') == $_ID)) && (!($eqLogic->getConfiguration('esclave_id') == $_ID)) && ($_ID!='')) continue;
+						
 							//log::add('sonoffdiy_mDNS','info'," ***ok trouvé ".$_ID);
 							$cestBonOnaTrouveleDevice=true;
 							foreach ($_data_decoded as $LogicalId => $value){
@@ -724,9 +738,12 @@ class sonoffdiy extends eqLogic {
 									if (is_array($_data_decoded['switches'])) {
 										foreach ($_data_decoded['switches'] as $switches){
 											if ($switches['outlet']=="0") self::sauvegardeCmdsInfoBis("switch", $switches['switch'], $eqLogic);// Pour MiniR3 et SPM
-											if ($switches['outlet']=="1") self::sauvegardeCmdsInfoBis("switch1", $switches['switch'], $eqLogic);// Pour SPM
-											if ($switches['outlet']=="2") self::sauvegardeCmdsInfoBis("switch2", $switches['switch'], $eqLogic);// Pour SPM
-											if ($switches['outlet']=="3") self::sauvegardeCmdsInfoBis("switch3", $switches['switch'], $eqLogic);// Pour SPM
+                                            // VB-) ----- Ne pas créer les commandes 1,2,3 pour les miniR3
+                                            if ($this->getConfiguration('device')!="miniR3") {
+        										if ($switches['outlet']=="1") self::sauvegardeCmdsInfoBis("switch1", $switches['switch'], $eqLogic);// Pour SPM
+    											if ($switches['outlet']=="2") self::sauvegardeCmdsInfoBis("switch2", $switches['switch'], $eqLogic);// Pour SPM
+    											if ($switches['outlet']=="3") self::sauvegardeCmdsInfoBis("switch3", $switches['switch'], $eqLogic);// Pour SPM
+                                            }
 										}
 									}
 								} 
@@ -757,10 +774,26 @@ class sonoffdiy extends eqLogic {
 											if ($pulses['outlet']=="0") {
 												self::sauvegardeCmdsInfoBis("pulse", $pulses['pulse'], $eqLogic);// on part du principe à ce stade (MiniR3) qu'il n'y a qu'une chaine, la chaine 0 les 3 autres sont ignorés, à voir pour les prochains devices
 												self::sauvegardeCmdsInfoBis("pulseWidth", $pulses['width'], $eqLogic);// on part du principe à ce stade (MiniR3) qu'il n'y a qu'une chaine, la chaine 0 les 3 autres sont ignorés, à voir pour les prochains devices
+/*VB-)*/
+   												self::sauvegardeCmdsInfoBis("pulseEndState", $pulses['switch'], $eqLogic);// on part du principe à ce stade (MiniR3) qu'il n'y a qu'une chaine, la chaine 0 les 3 autres sont ignorés, à voir pour les prochains devices
+/*VB-)*/
 											}
 										}
 									}
-								} 								
+								} 				
+/*VB-)*/
+                                // ----- Dans la cas du miniR2 l'id est renvoyé dans 'deviceid', il faut donc le reflecher vers le
+                                // nom de la commande "IDdetectee"
+                                elseif (($eqLogic->getConfiguration('device')=="miniR2") && ($LogicalId=='deviceid') && ($value!='')) {
+                                  self::sauvegardeCmdsInfoBis("IDdetectee", $value, $eqLogic);
+                                				
+                                }
+                                // ----- Dans la cas du miniR2 le rssi est renvoyé dans 'signalStrength', il faut donc le reflecher vers le
+                                // nom de la commande "rssi"
+                                elseif (($eqLogic->getConfiguration('device')=="miniR2") && ($LogicalId=='signalStrength') && ($value!='')) {
+                                  self::sauvegardeCmdsInfoBis("rssi", $value, $eqLogic);
+                                				
+                                }
 								elseif (!is_array($value)) self::sauvegardeCmdsInfoBis($LogicalId, $value, $eqLogic);
 								else log::add('sonoffdiy_mDNS','info'," Des données non enregistrées : ".json_encode($LogicalId)." = ".json_encode($value));
 							
@@ -1115,10 +1148,12 @@ return [$indice, $derniertime];
 							$cmd->setDisplay('icon', '<i class="icon_red icon fas fa-times"></i>');
 							$cmd->save();
 						}				
+                        
+                        
+    
 					}
 
-				
-				if (!$R3) {
+
 					$cmd = $this->getCmd(null, 'PulseOff');
 					if (!is_object($cmd)) {
 						$cmd = new sonoffdiyCmd();
@@ -1128,7 +1163,10 @@ return [$indice, $derniertime];
 						$cmd->setEqLogic_id($this->getId());
 						$cmd->setName('Pulse Off');
 						//$cmd->setConfiguration('parameter', '5000');					
-						$cmd->setConfiguration('request', 'pulse?command=off');
+    					if ($R3)
+    						$cmd->setConfiguration('request', 'pulses?command=off&outlet=0');
+                        else
+    						$cmd->setConfiguration('request', 'pulse?command=off');
 						$cmd->setConfiguration('expliq', 'Désactive le mode Pulse');
 						$cmd->setDisplay('title_disable', 1);
 						$cmd->setOrder($compteurOrderCmd); $compteurOrderCmd++;
@@ -1147,7 +1185,13 @@ return [$indice, $derniertime];
 						$cmd->setEqLogic_id($this->getId());
 						$cmd->setName('Pulse On');
 						$cmd->setConfiguration('parameter', '5000');
-						$cmd->setConfiguration('request', 'pulse?command=on');
+                        /* VB-) */
+                        // ----- Pour MiniR3 : stocke l'état à la fin du pulse (permet d'inverser le mode du pulse) 
+						$cmd->setConfiguration('etat_fin_pulse', 'off');                        
+    					if ($R3)
+    						$cmd->setConfiguration('request', 'pulses?command=on&outlet=0');
+                        else
+    						$cmd->setConfiguration('request', 'pulse?command=on');
 						$cmd->setConfiguration('expliq', 'Active le mode Pulse et fixe la tempo en ms (multiple de 500ms)');
 						$cmd->setDisplay('title_disable', 1);
 						$cmd->setOrder($compteurOrderCmd); $compteurOrderCmd++;
@@ -1155,41 +1199,43 @@ return [$indice, $derniertime];
 						$cmd->setIsVisible(0);
 						$cmd->save();
 					}
-					
-					$cmd = $this->getCmd(null, 'startup_action'); // 
-					if (!is_object($cmd)) {
-						$cmd = new sonoffdiyCmd();
-						$cmd->setType('action');
-						$cmd->setLogicalId('startup_action');
-						$cmd->setSubType('select');
-						$cmd->setEqLogic_id($this->getId());
-						$cmd->setName('Etat initial');					
-						$cmd->setConfiguration('request', 'startup?state=#select#');
-						$cmd->setConfiguration('listValue', 'on|on;off|off;stay|stay');
-						$cmd->setConfiguration('expliq', "Définir l'état à la mise sous tension");
-						$cmd->setDisplay('title_disable', 1);
-						$cmd->setOrder($compteurOrderCmd); $compteurOrderCmd++;
-						//$cmd->setDisplay('icon', '<i class="fa jeedomapp-audiospeak"></i>');
-						$cmd->setIsVisible(0);
-						$cmd->save();
-					}
-				
-					$cmd = $this->getCmd(null, 'startup');
-					if (!is_object($cmd)) {
-						$cmd = new sonoffdiyCmd();
-						$cmd->setType('info');
-						$cmd->setLogicalId('startup');
-						$cmd->setSubType('binary');
-						$cmd->setEqLogic_id($this->getId());
-						$cmd->setName('Etat à la mise sous tension');
-						$cmd->setIsVisible(0);
-						$cmd->setOrder($compteurOrderCmd); $compteurOrderCmd++;
-						//$cmd->setDisplay('icon', '<i class="fa fa-volume-up"></i>');
-						//$cmd->setDisplay('forceReturnLineBefore', true);
-						$cmd->save();
-					}
 
-					
+    				$cmd = $this->getCmd(null, 'startup_action'); // 
+    				if (!is_object($cmd)) {
+    					$cmd = new sonoffdiyCmd();
+    					$cmd->setType('action');
+    					$cmd->setLogicalId('startup_action');
+    					$cmd->setSubType('select');
+    					$cmd->setEqLogic_id($this->getId());
+    					$cmd->setName('Etat initial');					
+    					if ($R3)
+    					      $cmd->setConfiguration('request', 'startups?state=#select#&outlet=0');
+                          else
+    					      $cmd->setConfiguration('request', 'startup?state=#select#');
+    					$cmd->setConfiguration('listValue', 'on|on;off|off;stay|stay');
+    					$cmd->setConfiguration('expliq', "Définir l'état à la mise sous tension");
+    					$cmd->setDisplay('title_disable', 1);
+    					$cmd->setOrder($compteurOrderCmd); $compteurOrderCmd++;
+    					//$cmd->setDisplay('icon', '<i class="fa jeedomapp-audiospeak"></i>');
+    					$cmd->setIsVisible(0);
+    					$cmd->save();
+    				}
+    
+    				$cmd = $this->getCmd(null, 'startup');
+    				if (!is_object($cmd)) {
+    					$cmd = new sonoffdiyCmd();
+    					$cmd->setType('info');
+    					$cmd->setLogicalId('startup');
+      					$cmd->setSubType('string');        
+    					$cmd->setEqLogic_id($this->getId());
+    					$cmd->setName('Etat à la mise sous tension');
+    					$cmd->setIsVisible(0);
+    					$cmd->setOrder($compteurOrderCmd); $compteurOrderCmd++;
+    					//$cmd->setDisplay('icon', '<i class="fa fa-volume-up"></i>');
+    					//$cmd->setDisplay('forceReturnLineBefore', true);
+    					$cmd->save();
+    				}
+                  					
 					$cmd = $this->getCmd(null, 'pulse');
 					if (!is_object($cmd)) {
 						$cmd = new sonoffdiyCmd();
@@ -1220,7 +1266,26 @@ return [$indice, $derniertime];
 						//$cmd->setDisplay('forceReturnLineBefore', true);
 						$cmd->save();
 					}
+                    
+                    if ($R3) {
+    					$cmd = $this->getCmd(null, 'pulseEndState');
+    					if (!is_object($cmd)) {
+    						$cmd = new sonoffdiyCmd();
+    						$cmd->setType('info');
+    						$cmd->setLogicalId('pulseEndState');
+    						$cmd->setSubType('string');
+    						$cmd->setEqLogic_id($this->getId());
+    						$cmd->setName('Etat à la fin du Pulse');
+    						$cmd->setIsVisible(0);
+    						$cmd->setOrder($compteurOrderCmd); $compteurOrderCmd++;
+    						//$cmd->setDisplay('icon', '<i class="fa fa-volume-up"></i>');
+    						//$cmd->setDisplay('forceReturnLineBefore', true);
+    						$cmd->save();
+    					}
+                    }
 					
+/*VB-)*/                    
+				if (!$R3) {
 					$cmd = $this->getCmd(null, 'ssid');
 					if (!is_object($cmd)) {
 						$cmd = new sonoffdiyCmd();
@@ -1252,6 +1317,8 @@ return [$indice, $derniertime];
 					$cmd->save();
 				}
 				
+/*VB-)*/                    
+				if (!$R3) {
 				$cmd = $this->getCmd(null, 'IDdetectee');
 				if (!is_object($cmd)) {
 					$cmd = new sonoffdiyCmd();
@@ -1266,6 +1333,7 @@ return [$indice, $derniertime];
 					//$cmd->setDisplay('icon', '<i class="fa fa-volume-up"></i>');
 					//$cmd->setDisplay('forceReturnLineBefore', true);
 					$cmd->save();	
+				}
 				}
 				
 	
@@ -1421,6 +1489,9 @@ class sonoffdiyCmd extends cmd {
 	//if ((isset($_options['select'])) && ($_options['select'] != '')) log::add('sonoffdiy', 'info', '*****************************************************************************');
 	//if ((isset($_options['message'])) && ($_options['message'] != '')) $parameter=$_options['message']; // pour Pulse ON
 	if (($command=="startup") && (isset($_options['select'])) && ($_options['select'] != '') && ($valeur == '')) $valeur="stay";
+/*VB-)*/
+	if (($command=="startups") && (isset($_options['select'])) && ($_options['select'] != '') && ($valeur == '')) $valeur="stay";
+/*VB-)*/
 	if (($command=="pulse") && ($valeur=="off")) $parameter="123";
 	
 	// Rustine pour corriger l'erreur de $cmd->setConfiguration('listValue', 'on|on; off|off; stay|stay'); (espace en trop avant Off et Stay)
@@ -1489,6 +1560,36 @@ class sonoffdiyCmd extends cmd {
 				)
 			);				
 
+/*VB-)*/
+			if ($command=="startups")	{		
+                // ----- On doit indiquer les 4 outlets sinon la commande est refusée (contrairement à switches)
+				$configure=[
+					[
+						"startup" => $valeur,
+						"outlet" => intval($outlet)
+					],
+					[
+						"startup" => "off",
+						"outlet" => 1
+					],
+					[
+						"startup" => "off",
+						"outlet" => 2
+					],
+					[
+						"startup" => "off",
+						"outlet" => 3
+					]
+				];	
+				$data = array(
+				'deviceid'        => $device_id,
+				'data'    => array(
+					'configure'    => $configure					
+					)
+				);	
+			}
+/*VB-)*/
+
 			if ($command=="ops_mode")			
 			$data = array(
 				'deviceid'        => $device_id,
@@ -1516,6 +1617,50 @@ class sonoffdiyCmd extends cmd {
 						)
 					);
 					
+/*VB-)*/
+			if ($command=="pulses") {
+                // ----- width doit être multiple de 500ms et entre 500 et 3599500
+                if (($parameter < 500) || ($parameter > 3599500) || ($parameter % 500 != 0)) {
+                  $parameter = 5000;
+                }
+                $v_etat_fin_pulse = ($this->getConfiguration('etat_fin_pulse') == 'on' ? 'on' : 'off');
+                // ----- On doit indiquer les 4 outlets sinon la commande est refusée (contrairement à switches)
+				$pulses=[
+					[
+                        "pulse" => $valeur,
+                        "switch" => $v_etat_fin_pulse,
+                        "width" => $parameter,
+                        "outlet" => intval($outlet)
+					],
+					[
+                        "pulse" => "off",
+                        "switch" => "off",
+                        "width" => 2000,
+                        "outlet" => 1
+					],
+					[
+                        "pulse" => "off",
+                        "switch" => "off",
+                        "width" => 2000,
+                        "outlet" => 2
+					],
+					[
+                        "pulse" => "off",
+                        "switch" => "off",
+                        "width" => 2000,
+                        "outlet" => 3
+					]
+				];	
+				$data = array(
+				'deviceid'        => $device_id,
+				'data'    => array(
+					'pulses'    => $pulses					
+					)
+				);	
+            }
+/*VB-)*/
+                    
+                    
 			$vide = (object)[];
 			if (($command=="signal_strength") || ($command=="subDevList") || ($command=="info") || ($command=="getState"))		
 				$data = array(
@@ -1536,6 +1681,15 @@ class sonoffdiyCmd extends cmd {
 						'data'    => $vide
 					);		
 			}
+
+/*VB-)*/
+            // ----- Dans le cas du miniR3, il est possible de ne pas avoir indiqué le deviceid, mais dans ce cas il ne faut pas envoyer
+            // le champ 'deviceid' du tout.
+            // Dans le cas du miniR2, on peut mettre n'importe quoi dans le champ deviceid ça ne change rien
+            if (($this->getEqLogic()->getConfiguration('device')=="miniR3") && ($device_id == '') && (isset($data['deviceid']))) {
+			  unset($data['deviceid']);
+            }
+
 			$payload = json_encode($data);
 		log::add('sonoffdiy', 'info', ' ');
 		log::add('sonoffdiy', 'info', '╔══════════════════════[Envoi '.$command.' sur '.$eqLogic->getName().']═════════════════════════════════════════════════════════');
@@ -1577,6 +1731,18 @@ class sonoffdiyCmd extends cmd {
 		}
 
 		//$_id=$eqLogic->getConfiguration('device_id');
+
+/*VB-)*/
+        // ----- Mise à jour des états car pas d'erreur de retour donc normalement le status a été appliqué
+        if ($nberror=="0") {
+          if (($command == 'switch') || ($command == 'switches')) {
+            $eqLogic->checkAndUpdateCmd('switch', ($valeur=='on'?1:0));
+          }
+          if (($command == 'startup') || ($command == 'startups')) {
+            $eqLogic->checkAndUpdateCmd('startup', $valeur);
+          }
+        }
+/*VB-)*/
 
 		
 		
