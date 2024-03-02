@@ -161,6 +161,16 @@ foreach (jeedom::getConfiguration('eqLogic:category') as $key => $value)
 <div class="alert-info bg-success">
 	Mettre au minimum l'adresse IP de l'équipement.<br>Le plugin récupèrera l'ID à l'envoi de la première commande.
 </div>				
+
+                <div class="form-group">
+                  <br>
+                  <label class="col-sm-4 control-label">{{Lecture automatique de l'état}}</label>
+                  <div class="col-sm-8">
+                    <input type="checkbox" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="auto_refresh"/> {{Oui toutes les 5 minutes}}
+                  </div>
+                </div>
+
+
               </fieldset>
             </form>
           </div>
