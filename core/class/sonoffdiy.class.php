@@ -37,6 +37,23 @@ class sonoffdiy extends eqLogic {
             }
        	
 	}
+/*VB-)*/    
+    public static function cron5() {
+      $eqLogics = eqLogic::byType('sonoffdiy');
+      foreach ($eqLogics as $v_eq) {
+        // ----- On ne rafraichit que les equipements actifs
+        if (!$v_eq->getIsEnable()) {
+          continue;
+        }
+        
+        // ----- On ne rafraichit que les equipements qui sont configurés pour
+        // TBC
+        
+        // ----- On rafraichit les commandes qui le supporte
+        $v_eq->refresh();
+      }
+	}
+/*VB-)*/    
 	public static function deamon_start($_debug = false) {
 		log::add('sonoffdiy','debug', "╞══════════════════════[Deamon Start]═════════════════════════════════════════════════════════");
 		self::deamon_stop();
