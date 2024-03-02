@@ -47,9 +47,13 @@ class sonoffdiy extends eqLogic {
         }
         
         // ----- On ne rafraichit que les equipements qui sont configurés pour
-        // TBC
+        if ($v_eq->getConfiguration('auto_refresh') == 0) {
+          log::add('sonoffdiy','debug', " Pas d'auto-refresh pour '".$v_eq->getName()."'");
+          continue;
+        }
         
         // ----- On rafraichit les commandes qui le supporte
+        log::add('sonoffdiy','debug', " Lancer auto-refresh pour '".$v_eq->getName()."'");
         $v_eq->refresh();
       }
 	}
